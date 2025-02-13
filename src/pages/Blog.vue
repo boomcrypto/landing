@@ -1,5 +1,11 @@
+<script setup lang="ts">
+import AppLayout from '../components/AppLayout.vue'
+ 
+</script>
+
 <template>
-<div class="antialiased bg-page text-default tracking-tight">
+<AppLayout>
+<div class="antialiased bg-transparent text-default tracking-tight">
       <section class="mx-auto sm:px-6 lg:py-20 max-w-4xl px-6 py-12 sm:py-16">
         <header class="mx-auto max-w-3xl mb-8 md:mb-16 text-center">
           <h1
@@ -963,31 +969,9 @@
       </section>
 
 </div>
+
+</AppLayout>
 </template>
 <style>
-      :root {
-        --aw-font-sans: 'Inter Variable';
-        --aw-font-serif: 'Inter Variable';
-        --aw-font-heading: 'Inter Variable';
-        --aw-color-primary: rgb(217, 70, 239);
-        --aw-color-secondary: rgb(192, 38, 211);
-        --aw-color-accent: rgb(162, 28, 175);
-        --aw-color-text-heading: rgb(0 0 0);
-        --aw-color-text-default: rgb(16 16 16);
-        --aw-color-text-muted: rgb(16 16 16 / 66%);
-        --aw-color-bg-page: rgb(255 255 255);
-      }
-      .dark {
-        --aw-font-sans: 'Inter Variable';
-        --aw-font-serif: 'Inter Variable';
-        --aw-font-heading: 'Inter Variable';
-        --aw-color-primary: rgb(217, 70, 239);
-        --aw-color-secondary: rgb(192, 38, 211);
-        --aw-color-accent: rgb(162, 28, 175);
-        --aw-color-text-heading: rgb(247, 248, 248);
-        --aw-color-text-default: rgb(229 236 246);
-        --aw-color-text-muted: rgb(229 236 246 / 66%);
-        --aw-color-bg-page: rgb(23, 26, 28);
-      }
     </style>
 
