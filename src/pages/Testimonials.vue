@@ -206,6 +206,10 @@ const handleSubmit = async () => {
     isSubmitting.value = false;
   }
 };
+
+const displayCategory = (cat:string) => {
+  return cat.replace(/_/g, ' ');
+}
 // Initial load
 onMounted(async () => {
   await loadTestimonials();
@@ -241,7 +245,7 @@ onMounted(async () => {
                 : 'bg-gray-800 hover:bg-gray-700'
             ]"
           >
-            {{ category.replace(/_/g, ' ') }}
+            {{ displayCategory(category) }}
           </button>
         </div>
       </div>
@@ -275,7 +279,7 @@ onMounted(async () => {
           >
             <!-- Category Tag -->
             <span class="text-sm text-fuchsia-400 mb-4">
-              {{ testimonial.category.replace(/_/g, ' ') }}
+              {{ displayCategory(testimonial.category) }}
             </span>
 
             <!-- Quote -->
