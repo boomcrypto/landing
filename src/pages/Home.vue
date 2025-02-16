@@ -72,7 +72,7 @@ async function joinBeta() {
     </section>
 
     <!-- Features -->
-    <section class="relative not-prose scroll-mt-[72px]">
+    <section class="relative not-prose scroll-mt-[72px]" id="features">
       <div
         class="absolute inset-0 pointer-events-none -z-[1]"
         aria-hidden="true"
