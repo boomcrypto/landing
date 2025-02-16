@@ -7,6 +7,11 @@ import AppLayout from '../components/AppLayout.vue'
 
 interface Testimonial {
   $id: string;
+  $createdAt: string;
+  $updatedAt: string;
+  $permissions: string[];
+  $collectionId: string;
+  $databaseId: string;
   name: string;
   quote: string;
   job_role: string;
@@ -67,7 +72,7 @@ const loadTestimonials = async () => {
   loadError.value = '';
 
   try {
-    const response = await databases.listDocuments(
+    const response = await databases.listDocuments<Testimonial>(
       databaseId,
       '67b17a7f0023eddc01d3',
       [
@@ -77,7 +82,7 @@ const loadTestimonials = async () => {
 
     // Get testimonials with image URLs
     const testimonialsWithImages = await Promise.all(
-      response.documents.map(async (doc) => {
+      response.documents.map(async (doc: Testimonial) => {
         try {
           const imageUrl = storage.getFileView(
             'listing-images',
@@ -168,7 +173,7 @@ const handleSubmit = async () => {
     );
 
     // Then create the testimonial document
-    await databases.createDocument(
+    await databases.createDocument<Testimonial>(
       databaseId,
       '67b17a7f0023eddc01d3',
       ID.unique(),
@@ -201,11 +206,6 @@ const handleSubmit = async () => {
     isSubmitting.value = false;
   }
 };
-
-const displayCategory = (category: string) => {
-  return category.replace(/_/g, ' ');
-};
-
 // Initial load
 onMounted(async () => {
   await loadTestimonials();
