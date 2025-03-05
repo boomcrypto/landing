@@ -132,7 +132,7 @@ const currentYear = new Date().getFullYear();
             <li class="mb-2">
               <a
                 class="text-muted dark:text-gray-400 duration-150 ease-in-out hover:text-gray-700 hover:underline transition"
-                href="/blog"
+                href="https://blog.boom.money/"
                 >Blog</a
               >
             </li>

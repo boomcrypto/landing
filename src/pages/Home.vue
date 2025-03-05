@@ -26,7 +26,7 @@ async function joinBeta() {
 
     await account.createMagicURLToken(userId, email.value, redirectUrl);
     message.value = 'Check your email for the verification link!';
-    sent.value=true
+    sent.value = true;
   } catch (err: any) {
     console.error(err);
     message.value = 'Failed to send verification link. Please try again.';
@@ -39,12 +39,14 @@ async function joinBeta() {
 <template>
   <AppLayout>
     <!-- Hero Section -->
-    <section class="px-4 py-16 flex flex-col md:flex-row items-center h-full min-h-screen">
+    <section
+      class="px-4 py-16 flex flex-col md:flex-row items-center h-full min-h-screen"
+    >
       <div class="md:w-1/2 mb-8 md:mb-0">
         <h5 class="text-fuchsia-100 font-bold mb-4">
           EXPERIENCE GLOBAL FINANCIAL FREEDOM
         </h5>
-        <h1 class="text-5xl font-bold mb-6">Live the Bitcoin Economy</h1>
+        <h1 class="text-5xl font-bold mb-6">Be Sovereign.</h1>
         <p class="text-xl mb-8">
           Boom makes Bitcoin easy, practical, and borderless, empowering you to
           send, store, and grow—your way.
@@ -58,39 +60,39 @@ async function joinBeta() {
             :disabled="sent"
           />
           <button
-          :disabled="sending || sent"
+            :disabled="sending || sent"
             class="w-1/2 p-3 rounded-lg bg-fuchsia-400 hover:bg-fuchsia-700 transition"
             @click="joinBeta"
           >
-              <!-- Spinner (Shows when loading) -->
-  <span v-if="sending" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-    <svg 
-      class="animate-spin h-5 w-5" 
-      xmlns="http://www.w3.org/2000/svg" 
-      fill="none" 
-      viewBox="0 0 24 24"
-    >
-      <circle 
-        class="opacity-25" 
-        cx="12" 
-        cy="12" 
-        r="10" 
-        stroke="currentColor" 
-        stroke-width="4"
-      ></circle>
-      <path 
-        class="opacity-75" 
-        fill="currentColor" 
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-      ></path>
-    </svg>
-  </span>
-  
-  <!-- Button Text (Hidden when loading) -->
-  <span :class="{ 'invisible': sending }">
-    Join the beta
-  </span>
+            <!-- Spinner (Shows when loading) -->
+            <span
+              v-if="sending"
+              class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+            >
+              <svg
+                class="animate-spin h-5 w-5"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+            </span>
 
+            <!-- Button Text (Hidden when loading) -->
+            <span :class="{ invisible: sending }"> Join the beta </span>
           </button>
         </div>
       </div>
@@ -104,7 +106,10 @@ async function joinBeta() {
     </section>
 
     <!-- Features -->
-    <section class="relative not-prose scroll-mt-[72px]" id="features">
+    <section
+      class="relative not-prose scroll-mt-[72px]"
+      id="features"
+    >
       <div
         class="absolute inset-0 pointer-events-none -z-[1]"
         aria-hidden="true"
@@ -114,9 +119,8 @@ async function joinBeta() {
       <div
         class="mx-auto max-w-7xl relative px-4 lg:py-20 md:px-6 md:py-16 py-12 text-default"
       >
-
         <div class="mx-auto max-w-7xl md:px-8 p-4">
-                  <h2
+          <h2
             class="font-bold font-heading leading-tighter tracking-tighter md:text-4xl text-3xl text-heading text-center md:mb-12"
           >
             What you can do with Boom
@@ -124,8 +128,7 @@ async function joinBeta() {
 
           <div class="md:flex md:gap-16 md:flex-row-reverse">
             <div class="md:basis-1/2 self-center">
-              <div class="text-lg dark:text-slate-400 mb-12">
-              </div>
+              <div class="text-lg dark:text-slate-400 mb-12"></div>
               <div class="mx-auto gap-8 grid gap-y-4 md:gap-y-8">
                 <div>
                   <div class="flex flex-row max-w-none">
@@ -573,6 +576,180 @@ async function joinBeta() {
     </section>
 
     <!-- FAQ -->
-<section class="relative not-prose scroll-mt-[72px]"><div class="absolute inset-0 pointer-events-none -z-[1]" aria-hidden="true"><div class="absolute inset-0"></div></div><div class="mx-auto max-w-7xl relative px-4 lg:py-20 md:px-6 md:py-16 py-12 text-default"><div class="max-w-3xl mb-8 md:mb-12 md:mx-auto text-center"><h2 class="font-bold font-heading leading-tighter tracking-tighter md:text-4xl text-3xl text-heading">Frequently asked questions</h2></div><div class="mx-auto gap-8 grid gap-y-8 md:gap-y-12 sm:grid-cols-2"><div><div class="flex flex-row max-w-none"><div class="flex justify-center"><svg class="w-6 h-6 flex-shrink-0 mr-2 mt-1 rtl:ml-2 rtl:mr-0 text-primary" data-icon="tabler:chevron-right" height="1em" viewBox="0 0 24 24" width="1em"><use xlink:href="#ai:tabler:chevron-right"></use></svg></div><div class="mt-0.5"><h3 class="font-bold text-xl">How do I install Boom Wallet on my device?</h3><p class="text-muted mt-3">Boom Wallet is a Progressive Web App (PWA), which means you can install it directly from your web browser without needing to visit an app store. Simply navigate to our website using your mobile device or desktop browser. You'll see a prompt or an option in your browser menu to "Add to Home Screen" or "Install App." Tap that, and Boom Wallet will be added to your device for quick and easy access.</p></div></div></div><div><div class="flex flex-row max-w-none"><div class="flex justify-center"><svg class="w-6 h-6 flex-shrink-0 mr-2 mt-1 rtl:ml-2 rtl:mr-0 text-primary" data-icon="tabler:chevron-right" height="1em" viewBox="0 0 24 24" width="1em"><use xlink:href="#ai:tabler:chevron-right"></use></svg></div><div class="mt-0.5"><h3 class="font-bold text-xl">Is Boom Wallet secure, and do I control my private keys?</h3><p class="text-muted mt-3">Absolutely! Your security and privacy are our top priorities. With Boom Wallet, you have full control over your private keys—we never have access to them or your funds. This means your crypto assets are securely stored, and only you can authorize transactions. Remember the golden rule: "Your keys, your crypto—no exceptions."</p></div></div></div><div><div class="flex flex-row max-w-none"><div class="flex justify-center"><svg class="w-6 h-6 flex-shrink-0 mr-2 mt-1 rtl:ml-2 rtl:mr-0 text-primary" data-icon="tabler:chevron-right" height="1em" viewBox="0 0 24 24" width="1em"><use xlink:href="#ai:tabler:chevron-right"></use></svg></div><div class="mt-0.5"><h3 class="font-bold text-xl">What is Stacks Pay, and how does it work with Boom Wallet and Boom Smart Shops?</h3><p class="text-muted mt-3">Stacks Pay is a payment protocol that simplifies crypto transactions by using easy links and QR codes—think of it like the convenience of Lightning Network, but without the complexity. In Boom Wallet, you can send and receive payments effortlessly using Stacks Pay. For merchants using Boom Smart Shops, Stacks Pay enables seamless acceptance of Bitcoin and multiple Stacks tokens through smart contracts, making transactions smooth and hassle-free.</p></div></div></div><div><div class="flex flex-row max-w-none"><div class="flex justify-center"><svg class="w-6 h-6 flex-shrink-0 mr-2 mt-1 rtl:ml-2 rtl:mr-0 text-primary" data-icon="tabler:chevron-right" height="1em" viewBox="0 0 24 24" width="1em"><use xlink:href="#ai:tabler:chevron-right"></use></svg></div><div class="mt-0.5"><h3 class="font-bold text-xl">How do I use the in-wallet chat feature to communicate with friends and merchants?</h3><p class="text-muted mt-3">Our in-app chat lets you connect directly with friends and merchants without leaving Boom Wallet. To start chatting, open your wallet and select the contact or merchant you wish to communicate with. You can securely exchange messages without exposing any personal information, enhancing your crypto experience by keeping all your interactions in one secure place.</p></div></div></div><div><div class="flex flex-row max-w-none"><div class="flex justify-center"><svg class="w-6 h-6 flex-shrink-0 mr-2 mt-1 rtl:ml-2 rtl:mr-0 text-primary" data-icon="tabler:chevron-right" height="1em" viewBox="0 0 24 24" width="1em"><use xlink:href="#ai:tabler:chevron-right"></use></svg></div><div class="mt-0.5"><h3 class="font-bold text-xl">How do Boom Smart Shops benefit merchants compared to traditional platforms?</h3><p class="text-muted mt-3">Boom Smart Shops empower merchants by leveraging decentralized, smart contract-based technology. Unlike traditional platforms that often charge hefty fees and require complex setups, Boom Smart Shops allow you to accept Bitcoin and multiple Stacks tokens with ease. Transactions are processed through smart contracts, ensuring security and transparency without intermediaries. Plus, with Stacks Pay integration, you can receive payments via simple links or QR codes.</p></div></div></div></div></div></section>
+    <section class="relative not-prose scroll-mt-[72px]">
+      <div
+        class="absolute inset-0 pointer-events-none -z-[1]"
+        aria-hidden="true"
+      >
+        <div class="absolute inset-0"></div>
+      </div>
+      <div
+        class="mx-auto max-w-7xl relative px-4 lg:py-20 md:px-6 md:py-16 py-12 text-default"
+      >
+        <div class="max-w-3xl mb-8 md:mb-12 md:mx-auto text-center">
+          <h2
+            class="font-bold font-heading leading-tighter tracking-tighter md:text-4xl text-3xl text-heading"
+          >
+            Frequently asked questions
+          </h2>
+        </div>
+        <div class="mx-auto gap-8 grid gap-y-8 md:gap-y-12 sm:grid-cols-2">
+          <div>
+            <div class="flex flex-row max-w-none">
+              <div class="flex justify-center">
+                <svg
+                  class="w-6 h-6 flex-shrink-0 mr-2 mt-1 rtl:ml-2 rtl:mr-0 text-primary"
+                  data-icon="tabler:chevron-right"
+                  height="1em"
+                  viewBox="0 0 24 24"
+                  width="1em"
+                >
+                  <use xlink:href="#ai:tabler:chevron-right"></use>
+                </svg>
+              </div>
+              <div class="mt-0.5">
+                <h3 class="font-bold text-xl">
+                  How do I install Boom Wallet on my device?
+                </h3>
+                <p class="text-muted mt-3">
+                  Boom Wallet is a Progressive Web App (PWA), which means you
+                  can install it directly from your web browser without needing
+                  to visit an app store. Simply navigate to our website using
+                  your mobile device or desktop browser. You'll see a prompt or
+                  an option in your browser menu to "Add to Home Screen" or
+                  "Install App." Tap that, and Boom Wallet will be added to your
+                  device for quick and easy access.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="flex flex-row max-w-none">
+              <div class="flex justify-center">
+                <svg
+                  class="w-6 h-6 flex-shrink-0 mr-2 mt-1 rtl:ml-2 rtl:mr-0 text-primary"
+                  data-icon="tabler:chevron-right"
+                  height="1em"
+                  viewBox="0 0 24 24"
+                  width="1em"
+                >
+                  <use xlink:href="#ai:tabler:chevron-right"></use>
+                </svg>
+              </div>
+              <div class="mt-0.5">
+                <h3 class="font-bold text-xl">
+                  Is Boom Wallet secure, and do I control my private keys?
+                </h3>
+                <p class="text-muted mt-3">
+                  Absolutely! Your security and privacy are our top priorities.
+                  With Boom Wallet, you have full control over your private
+                  keys—we never have access to them or your funds. This means
+                  your crypto assets are securely stored, and only you can
+                  authorize transactions. Remember the golden rule: "Your keys,
+                  your crypto—no exceptions."
+                </p>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="flex flex-row max-w-none">
+              <div class="flex justify-center">
+                <svg
+                  class="w-6 h-6 flex-shrink-0 mr-2 mt-1 rtl:ml-2 rtl:mr-0 text-primary"
+                  data-icon="tabler:chevron-right"
+                  height="1em"
+                  viewBox="0 0 24 24"
+                  width="1em"
+                >
+                  <use xlink:href="#ai:tabler:chevron-right"></use>
+                </svg>
+              </div>
+              <div class="mt-0.5">
+                <h3 class="font-bold text-xl">
+                  What is Stacks Pay, and how does it work with Boom Wallet and
+                  Boom Smart Shops?
+                </h3>
+                <p class="text-muted mt-3">
+                  Stacks Pay is a payment protocol that simplifies crypto
+                  transactions by using easy links and QR codes—think of it like
+                  the convenience of Lightning Network, but without the
+                  complexity. In Boom Wallet, you can send and receive payments
+                  effortlessly using Stacks Pay. For merchants using Boom Smart
+                  Shops, Stacks Pay enables seamless acceptance of Bitcoin and
+                  multiple Stacks tokens through smart contracts, making
+                  transactions smooth and hassle-free.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="flex flex-row max-w-none">
+              <div class="flex justify-center">
+                <svg
+                  class="w-6 h-6 flex-shrink-0 mr-2 mt-1 rtl:ml-2 rtl:mr-0 text-primary"
+                  data-icon="tabler:chevron-right"
+                  height="1em"
+                  viewBox="0 0 24 24"
+                  width="1em"
+                >
+                  <use xlink:href="#ai:tabler:chevron-right"></use>
+                </svg>
+              </div>
+              <div class="mt-0.5">
+                <h3 class="font-bold text-xl">
+                  How do I use the in-wallet chat feature to communicate with
+                  friends and merchants?
+                </h3>
+                <p class="text-muted mt-3">
+                  Our in-app chat lets you connect directly with friends and
+                  merchants without leaving Boom Wallet. To start chatting, open
+                  your wallet and select the contact or merchant you wish to
+                  communicate with. You can securely exchange messages without
+                  exposing any personal information, enhancing your crypto
+                  experience by keeping all your interactions in one secure
+                  place.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="flex flex-row max-w-none">
+              <div class="flex justify-center">
+                <svg
+                  class="w-6 h-6 flex-shrink-0 mr-2 mt-1 rtl:ml-2 rtl:mr-0 text-primary"
+                  data-icon="tabler:chevron-right"
+                  height="1em"
+                  viewBox="0 0 24 24"
+                  width="1em"
+                >
+                  <use xlink:href="#ai:tabler:chevron-right"></use>
+                </svg>
+              </div>
+              <div class="mt-0.5">
+                <h3 class="font-bold text-xl">
+                  How does Boom leverage sBTC to expand Bitcoin's utility and build the Bitcoin economy?
+                </h3>
+                <p class="text-muted mt-3">
+                  Boom leverages sBTC to expand Bitcoin's utility and build the Bitcoin economy by integrating it into its ecosystem of products, making it easier for users to trade, build, and connect within the Bitcoin network.
+                  Here's how Boom leverages sBTC:
+                  <ul>
+                    <li><strong>Boom Wallet:</strong> Facilitates BTC transactions, enabling users to pay and receive sBTC directly from their Bitcoin holdings without involving custodians.
+                    </li>
+                    <li><strong>Boom Smart Shops:</strong> Enables the selling of digital products and services, with instant transactions in sBTC secured by Bitcoin's Layer 1. For example, a coder can sell a course and receive payment in sBTC.
+                    </li>
+                    <li><strong>Boom Chat:</strong> Provides decentralized communication channels, fostering secure and trustless interactions between users.
+                    </li>
+                    <li><strong>Smart Contracts:</strong> Allows entrepreneurs to offer subscriptions and other services via sBTC-powered smart contracts. Boom handles the technical aspects, allowing users to generate recurring revenue.
+                    </li>   
+                  </ul>
+                  <br />
+                  By integrating sBTC into its products, Boom simplifies the process for users to engage in the Bitcoin economy, fostering growth and expanding Bitcoin's utility.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   </AppLayout>
 </template>
