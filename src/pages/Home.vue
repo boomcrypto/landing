@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { ID } from 'appwrite';
 import { account } from '../lib/appwrite';
 import AppLayout from '../components/AppLayout.vue';
@@ -13,6 +13,7 @@ const sending = ref(false);
 const email = ref<string | null>(null);
 const message = ref<string | null>(null);
 const sent = ref(false);
+const hasAccount = ref(false);
 
 async function joinBeta() {
   if (!email.value) return;
@@ -34,6 +35,12 @@ async function joinBeta() {
     sending.value = false;
   }
 }
+
+onMounted(async () => {
+  if (await account.get()) {
+    hasAccount.value = true;
+  }
+});
 </script>
 
 <template>
@@ -52,48 +59,57 @@ async function joinBeta() {
           send, store, and grow—your way.
         </p>
         <div class="space-y-4 flex flex-col">
-          <input
-            v-model="email"
-            type="email"
-            :placeholder="message || 'Enter your email'"
-            class="w-1/2 p-3 rounded-lg bg-gray-800 border border-gray-700"
-            :disabled="sent"
-          />
-          <button
-            :disabled="sending || sent"
-            class="w-1/2 p-3 rounded-lg bg-fuchsia-400 hover:bg-fuchsia-700 transition"
-            @click="joinBeta"
-          >
-            <!-- Spinner (Shows when loading) -->
-            <span
-              v-if="sending"
-              class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+          <div v-if="hasAccount">
+            <p class="text-sm text-gray-400">
+              You're already part of the beta! 🚀
+            </p>
+          </div>
+          <div v-else>
+            <input
+              v-model="email"
+              type="email"
+              placeholder="Enter your email"
+              class="w-1/2 p-3 rounded-lg bg-gray-800 border border-gray-700"
+              :disabled="sent || hasAccount"
+            />
+            {{ message }}
+            <button
+              :disabled="sending || sent || hasAccount"
+              class="w-1/2 p-3 rounded-lg bg-fuchsia-400 hover:bg-fuchsia-700 transition"
+              @click="joinBeta"
             >
-              <svg
-                class="animate-spin h-5 w-5"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
+              <!-- Spinner (Shows when loading) -->
+              <span
+                v-if="sending"
+                class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
               >
-                <circle
-                  class="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  stroke-width="4"
-                ></circle>
-                <path
-                  class="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-            </span>
+                <svg
+                  class="animate-spin h-5 w-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  ></circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+              </span>
 
-            <!-- Button Text (Hidden when loading) -->
-            <span :class="{ invisible: sending }"> Join the beta </span>
-          </button>
+              <!-- Button Text (Hidden when loading) -->
+              <span :class="{ invisible: sending }"> Join the beta </span>
+            </button>
+
+          </div>
         </div>
       </div>
       <div class="md:w-1/2">

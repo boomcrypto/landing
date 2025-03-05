@@ -22,7 +22,6 @@ const statusMessage = ref('Verifying your account...')
 const verifying = ref(true)
 
 onMounted(async () => {
-  console.log('session mounted')
   const userId = route.query.userId as string | undefined
   const secret = route.query.secret as string | undefined
 
@@ -34,16 +33,15 @@ onMounted(async () => {
   }
 
   try {
-    const userSession = await account.updateMagicURLSession(userId, secret)
-    console.log('Account verified successfully:', userSession)
-    await account.deleteSession(userSession.$id);
+    await account.updateMagicURLSession(userId, secret)
     statusMessage.value = 'Account verified successfully! Redirecting to home...'
-    verifying.value = false
-    router.replace('/')
-
+    
   } catch (err) {
     console.error('Failed to verify account:', err)
     // TODO: handle error - could redirect to a dedicated error page or show a message
+    router.replace('/')
+  } finally {
+    verifying.value = false
     router.replace('/')
   }
 })
