@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { ID } from 'appwrite';
-import { account } from '../lib/appwrite';
+import { account, databases } from '../lib/appwrite';
 import AppLayout from '../components/AppLayout.vue';
 
 import heroImg from '../assets/hero-leftv2.png';
@@ -14,18 +14,44 @@ const email = ref<string | null>(null);
 const message = ref<string | null>(null);
 const sent = ref(false);
 const hasAccount = ref(false);
+const isMerchantOrCreator = ref(false);
 
 async function joinBeta() {
   if (!email.value) return;
   sending.value = true;
 
   try {
+    // Basic email validation
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(email.value)) {
+      message.value = 'Please enter a valid email address.';
+      sending.value = false;
+      return;
+    }
+
     // Generate a unique user ID if user does not have an account yet
     const userId = ID.unique();
     // The URL the user will be redirected to after clicking the link
     const redirectUrl = `${window.location.origin}/verify`;
 
     await account.createMagicURLToken(userId, email.value, redirectUrl);
+    
+    // Store additional preferences if available
+    try {
+      await databases.createDocument(
+        import.meta.env.VITE_APPWRITE_DATABASE_ID, 
+        'shop_users',
+        ID.unique(),
+        {
+          email: email.value,
+          isMerchantOrCreator: isMerchantOrCreator.value
+        }
+      );
+    } catch (dbErr) {
+      // If database operation fails, still continue with the beta signup
+      console.error('Failed to save preferences:', dbErr);
+    }
+    
     message.value = 'Check your email for the verification link!';
     sent.value = true;
   } catch (err: any) {
@@ -64,51 +90,48 @@ onMounted(async () => {
               You're already part of the beta! 🚀
             </p>
           </div>
-          <div v-else>
-            <input
-              v-model="email"
-              type="email"
-              placeholder="Enter your email"
-              class="w-1/2 p-3 rounded-lg bg-gray-800 border border-gray-700"
-              :disabled="sent || hasAccount"
-            />
-            {{ message }}
-            <button
-              :disabled="sending || sent || hasAccount"
-              class="w-1/2 p-3 rounded-lg bg-fuchsia-400 hover:bg-fuchsia-700 transition"
-              @click="joinBeta"
-            >
-              <!-- Spinner (Shows when loading) -->
-              <span
-                v-if="sending"
-                class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+          <div v-else-if="sent">
+            <div class="p-4 bg-gray-800 rounded-lg max-w-lg">
+              <p class="text-fuchsia-300 font-semibold mb-2">✓ Success!</p>
+              <p>{{ message }}</p>
+            </div>
+          </div>
+          <div v-else class="max-w-lg space-y-4">
+            <div class="flex flex-col sm:flex-row gap-3">
+              <input
+                v-model="email"
+                type="email"
+                placeholder="Enter your email"
+                class="w-full sm:w-2/3 p-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-fuchsia-400 focus:ring-2 focus:ring-fuchsia-400/20 outline-none"
+                :disabled="sending"
+                @keyup.enter="joinBeta"
+              />
+              <button
+                :disabled="sending || !email"
+                class="w-full sm:w-1/3 p-3 rounded-lg bg-fuchsia-500 hover:bg-fuchsia-600 focus:ring-2 focus:ring-fuchsia-400 focus:ring-offset-2 focus:ring-offset-zinc-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                @click="joinBeta"
               >
-                <svg
-                  class="animate-spin h-5 w-5"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    class="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
-                  ></circle>
-                  <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-              </span>
-
-              <!-- Button Text (Hidden when loading) -->
-              <span :class="{ invisible: sending }"> Join the beta </span>
-            </button>
-
+                <span v-if="sending" class="flex items-center justify-center">
+                  <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                </span>
+                <span v-else>Join the beta</span>
+              </button>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+              <input 
+                type="checkbox" 
+                id="merchant" 
+                v-model="isMerchantOrCreator"
+                class="h-4 w-4 rounded border-gray-600 bg-gray-700 text-fuchsia-500 focus:ring-fuchsia-400 focus:ring-offset-gray-800"
+              >
+              <label for="merchant" class="text-sm">I am a merchant/creator and I want to learn more about earning in Bitcoin.</label>
+            </div>
+            
+            <p v-if="message" class="text-red-400 text-sm">{{ message }}</p>
           </div>
         </div>
       </div>

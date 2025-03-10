@@ -9,6 +9,7 @@ import Team from './pages/Team.vue';
 import Press from './pages/Press.vue';
 import Testimonials from './pages/Testimonials.vue';
 import Release from './pages/Release.vue';
+import SmartShops from './pages/SmartShops.vue';
 
 const routes = [
   { path: '/', component: Home },
@@ -20,6 +21,7 @@ const routes = [
   { path: '/media', component: Press },
   { path: '/testimonials', component: Testimonials },
   { path: '/press-release/:slug', component: Release },
+  { path: '/merchants', component: SmartShops },
 ];
 
 const router = createRouter({
