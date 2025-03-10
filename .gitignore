@@ -26,4 +26,4 @@ dist-ssr
 .env
 
 #AI
-CLAUDE.md
+./CLAUDE.md
