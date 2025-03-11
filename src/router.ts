@@ -10,6 +10,8 @@ import Press from './pages/Press.vue';
 import Testimonials from './pages/Testimonials.vue';
 import Release from './pages/Release.vue';
 import SmartShops from './pages/SmartShops.vue';
+import BasicSignup from './pages/BasicSignup.vue';
+import ProSignup from './pages/ProSignup.vue';
 
 const routes = [
   { path: '/', component: Home },
@@ -22,6 +24,8 @@ const routes = [
   { path: '/testimonials', component: Testimonials },
   { path: '/press-release/:slug', component: Release },
   { path: '/merchants', component: SmartShops },
+  { path: '/basic-signup', component: BasicSignup },
+  { path: '/pro-signup', component: ProSignup },
 ];
 
 const router = createRouter({
