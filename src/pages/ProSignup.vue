@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
 import AppLayout from '../components/AppLayout.vue';
 import WaitlistInfo from '../components/WaitlistInfo.vue';
-import { account } from '../lib/appwrite';
+// import { account } from '../lib/appwrite';
 
-const router = useRouter();
 const email = ref('');
 const name = ref('');
 const company = ref('');
@@ -24,13 +22,16 @@ const handleSubmit = async () => {
   error.value = '';
 
   try {
-    // For now, this just sends a magic link - we're not creating a full account yet
-    await account.createMagicURLSession(
-      email.value,
-      'https://boom.money/verify'
-    );
+    // This is a mockup of the signup process - in production this would connect to a real API
+    // await account.createMagicURLSession(
+    //   email.value,
+    //   'https://boom.money/verify'
+    // );
     
-    successMessage.value = 'Thanks for your interest! We\'ve sent you an email with more information about the Pro plan.';
+    // Simulate API call with timeout
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    successMessage.value = 'Thanks for your interest! We\'ve added you to our waitlist for the Pro plan.';
     email.value = '';
     name.value = '';
     company.value = '';
