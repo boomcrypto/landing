@@ -39,13 +39,14 @@ jobs:
         id: setup-node
         with:
           node-version: '20'
-
-      - uses: bahmutov/npm-install@v1
-        id: npm-install
-
-      - name: Build app
-        id: build-app
-        run: npm run build --production
+          
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: |
+            - recursive: true
+              args: [--frozen-lockfile, --strict-peer-dependencies]
+            - args: [--global, @quasar/cli, prettier, typescript]
 
 ### ---  PLEASE DO NOT MODIFY ANYTHING BELOW THIS LINE --- ###
 
