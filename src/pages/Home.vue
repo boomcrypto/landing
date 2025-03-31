@@ -771,6 +771,7 @@ onMounted(async () => {
                 <p class="text-muted mt-3">
                   Boom leverages sBTC to expand Bitcoin's utility and build the Bitcoin economy by integrating it into its ecosystem of products, making it easier for users to trade, build, and connect within the Bitcoin network.
                   Here's how Boom leverages sBTC:
+                </p>
                   <ul>
                     <li><strong>Boom Wallet:</strong> Facilitates BTC transactions, enabling users to pay and receive sBTC directly from their Bitcoin holdings without involving custodians.
                     </li>
@@ -783,7 +784,6 @@ onMounted(async () => {
                   </ul>
                   <br />
                   By integrating sBTC into its products, Boom simplifies the process for users to engage in the Bitcoin economy, fostering growth and expanding Bitcoin's utility.
-                </p>
               </div>
             </div>
           </div>
