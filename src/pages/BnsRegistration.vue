@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, onBeforeUnmount } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { ID } from 'appwrite';
 import { account, databases } from '../lib/appwrite';
-import { 
-  connectWallet, 
-  getUserAddress, 
-  hasStacksWallet,
-  onAccountChange,
-} from '../lib/stacksConnect';
+import { useStacksWallet, registerBnsName } from '../lib/stacksConnect';
+import { fetchUserOwnedNames } from 'bns-v2-sdk';
 import AppLayout from '../components/AppLayout.vue';
+
+// Initialize the Stacks wallet composable
+const { 
+  isWalletConnected, 
+  authenticate, 
+  currentAddress, 
+  disconnect,
+  truncateAddress
+} = useStacksWallet();
 
 // Step tracking
 const currentStep = ref(1);
@@ -22,34 +27,21 @@ const sent = ref(false);
 const hasAccount = ref(false);
 
 // Step 2 - Stacks Wallet Connection
-const walletConnected = ref(false);
-const walletAddress = ref<string | null>(null);
 const walletConnecting = ref(false);
 
 // Step 3 - BNS Name Selection
-const bnsNames = ref<{ name: string, available: boolean, price: number }[]>([]);
+const bnsNames = ref<{ name: string, originalName: string, available: boolean }[]>([]);
 const selectedNames = ref<string[]>([]);
-const searchQuery = ref('');
 const searching = ref(false);
+const fetchingBnsNames = ref(false);
 const searchError = ref<string | null>(null);
 const nameToAdd = ref('');
+const userOwnedBtcNames = ref<string[]>([]);
 
 // Progress tracking
 const progress = computed(() => {
   return (currentStep.value / totalSteps) * 100;
 });
-
-// Set up wallet change listener
-function handleAccountChange(event: AccountChangeEvent) {
-  console.log('Account changed:', event);
-  if (event.status === 'connected') {
-    walletAddress.value = event.address;
-    walletConnected.value = true;
-  } else {
-    walletAddress.value = null;
-    walletConnected.value = false;
-  }
-}
 
 // Check if user is already logged in and if wallet is connected
 onMounted(async () => {
@@ -67,38 +59,23 @@ onMounted(async () => {
       console.log('User not logged in with Appwrite');
     }
     
-    // Check for wallet provider
-    if (hasStacksWallet()) {
-      // Check for existing address
-      try {
-        const address = await getUserAddress();
-        if (address) {
-          walletAddress.value = address;
-          walletConnected.value = true;
-          
-          // If we have both account and wallet, move to step 3
-          if (hasAccount.value) {
-            currentStep.value = 3;
-          }
-        }
-      } catch (err) {
-        console.log('Wallet not connected yet:', err);
-      }
+    // Check for wallet
+    if (isWalletConnected) {
+      console.log('Wallet already connected:', currentAddress);
       
-      // Set up account change listener
-      onAccountChange(handleAccountChange);
-    } else {
-      console.log('No Stacks wallet provider found');
+      // If the wallet is connected and we have its address
+      if (currentAddress) {
+        // Update user record in database if account exists
+        if (hasAccount.value) {
+          await updateUserWallet(currentAddress);
+          // Move to step 3 since we have both account and wallet
+          currentStep.value = 3;
+        }
+      }
     }
   } catch (err) {
     console.error('Error during initialization:', err);
   }
-});
-
-// Clean up event listeners
-onBeforeUnmount(() => {
-  // Unfortunately with the current SIP-30, we can't directly remove the event listener
-  // This would need to be done if the SIP-30 spec provides a method for this
 });
 
 // Step 1 function - Register for Boom
@@ -147,38 +124,51 @@ async function registerWithBoom() {
   }
 }
 
-// Step 2 function - Connect to Stacks wallet using SIP-30
-async function handleConnectWallet() {
+// Step 2 function - Connect to Stacks wallet
+function handleConnectWallet() {
   walletConnecting.value = true;
   message.value = null;
   
   try {
-    if (!hasStacksWallet()) {
-      message.value = 'No Stacks wallet provider found. Please install a compatible wallet.';
-      walletConnecting.value = false;
-      return;
-    }
-
-    // Using SIP-30 connectWallet function to get addresses
-    const addresses = await connectWallet();
+    console.log("Initiating wallet connection...");
     
-    if (addresses && addresses.length > 0) {
-      // Successfully connected
-      walletAddress.value = addresses[0].address;
-      walletConnected.value = true;
+    // Call authenticate from our composable with a success callback
+    authenticate(() => {
+      console.log("Wallet connection callback triggered");
+      console.log("Current address:", currentAddress);
       
-      // Update user record in database
-      await updateUserWallet(addresses[0].address);
-      
-      // Move to next step
-      currentStep.value = 3;
-    } else {
-      message.value = 'Could not connect to wallet. Please try again.';
-    }
+      // We need to ensure there's an address before proceeding
+      if (currentAddress) {
+        console.log("Valid address found, updating database and moving to step 3");
+        
+        // Create a promise chain to ensure proper flow
+        Promise.resolve()
+          .then(() => updateUserWallet(currentAddress))
+          .then(() => {
+            console.log("Database updated, moving to step 3");
+            
+            // Force a state update in the next tick to ensure Vue reactivity
+            setTimeout(() => {
+              currentStep.value = 3;
+              console.log("Current step updated to:", currentStep.value);
+            }, 0);
+          })
+          .catch(err => {
+            console.error("Error in wallet connect flow:", err);
+            // Even if there was an error, still proceed to step 3
+            currentStep.value = 3;
+          });
+      } else {
+        console.log("No valid address found after authentication");
+      }
+    });
+    
+    // We won't know when the process completes with the popup-based flow,
+    // so we'll reset the connecting state immediately
+    walletConnecting.value = false;
   } catch (error) {
     console.error('Failed to connect wallet:', error);
     message.value = 'An error occurred while connecting to your wallet.';
-  } finally {
     walletConnecting.value = false;
   }
 }
@@ -237,98 +227,126 @@ async function updateUserWallet(address: string) {
   }
 }
 
-// Function to check if a BNS name is available
-async function checkNameAvailability(name: string) {
-  if (!name) return;
+// Function to fetch BNS names owned by the user
+async function fetchBnsNames() {
+  if (!currentAddress) return;
   
-  searching.value = true;
+  fetchingBnsNames.value = true;
   searchError.value = null;
+  bnsNames.value = []; // Clear existing list
+  userOwnedBtcNames.value = []; // Clear existing list
   
   try {
-    // Validate name format
-    if (!name.match(/^[a-z0-9_-]+$/)) {
-      searchError.value = 'Names can only contain lowercase letters, numbers, hyphens, and underscores';
-      searching.value = false;
-      return;
-    }
+    console.log("Fetching BNS names for address:", currentAddress);
     
-    // This would be a call to the BNS contract to check availability
-    // For now, we'll simulate it with random availability
-    
-    // Check if name is already in the list
-    const existing = bnsNames.value.find(n => n.name === name);
-    if (existing) {
-      searchError.value = 'This name is already in your list';
-      searching.value = false;
-      return;
-    }
-    
-    // Simulate a network call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Simulate pricing based on name length
-    let price = 10; // Base price
-    if (name.length <= 4) price = 100;
-    else if (name.length <= 7) price = 50;
-    else if (name.length <= 10) price = 25;
-    
-    // For this demo, make most names available with some randomness
-    const available = Math.random() > 0.3;
-    
-    // Add the name to the list
-    bnsNames.value.push({
-      name,
-      available,
-      price
+    // Fetch all names owned by the user
+    const ownedNames = await fetchUserOwnedNames({
+      senderAddress: currentAddress,
+      network: "mainnet",
     });
     
-    // Clear the input
-    nameToAdd.value = '';
+    console.log("User owned names:", ownedNames);
+    
+    // Filter for only names in the 'btc' namespace
+    const btcNames = ownedNames.filter(nameObj => nameObj.namespace === 'btc')
+      .map(nameObj => `${nameObj.name}.${nameObj.namespace}`);
+    
+    userOwnedBtcNames.value = btcNames;
+    
+    console.log("BTC names:", btcNames);
+    
+    // For each .btc name, create a reservable .boom.btc name
+    for (const btcName of btcNames) {
+      // Get the name part without the .btc suffix
+      const baseName = btcName.slice(0, -4); // remove .btc
+      const boomName = `${baseName}.boom.btc`;
+      
+      // All names are available for reservation if the user owns the original
+      bnsNames.value.push({
+        name: boomName,
+        originalName: btcName,
+        available: true
+      });
+    }
+    
+    if (bnsNames.value.length === 0) {
+      searchError.value = "You don't own any .btc names that can be reserved with .boom.btc";
+    }
   } catch (error) {
-    console.error('Error checking name availability:', error);
-    searchError.value = 'Failed to check name availability';
+    console.error('Error fetching BNS names:', error);
+    searchError.value = 'Failed to fetch your BNS names. Please try again.';
   } finally {
-    searching.value = false;
+    fetchingBnsNames.value = false;
   }
 }
 
+// Watch for wallet connection and fetch names when connected
+watch(isWalletConnected, (newValue) => {
+  if (newValue && currentStep.value === 3 && currentAddress) {
+    fetchBnsNames();
+  }
+});
+
+// Also watch current step to load names when arriving at step 3
+watch(currentStep, (newValue) => {
+  if (newValue === 3 && isWalletConnected.value && currentAddress) {
+    fetchBnsNames();
+  }
+});
+
 // Function to register the selected names
 async function registerNames() {
-  if (!walletAddress.value || selectedNames.length === 0) return;
+  if (!currentAddress || selectedNames.value.length === 0) return;
   
   try {
+    // Find the corresponding original BTC names for each selected boom.btc name
+    const namesToRegister = selectedNames.value.map(selectedName => {
+      const nameInfo = bnsNames.value.find(bn => bn.name === selectedName);
+      return {
+        boomName: selectedName,
+        originalName: nameInfo ? nameInfo.originalName : null
+      };
+    }).filter(item => item.originalName !== null);
+    
+    console.log("Names to register:", namesToRegister);
+    
     // Here you would integrate with registerBnsName from stacksConnect.ts
     // For each selected name
-    for (const name of selectedNames) {
+    for (const nameInfo of namesToRegister) {
       try {
-        console.log(`Registering name: ${name} for address ${walletAddress.value}`);
+        console.log(`Registering name: ${nameInfo.boomName} based on ${nameInfo.originalName} for address ${currentAddress}`);
         // In a production app, you would call:
-        // await registerBnsName(name, walletAddress.value);
+        // await registerBnsName(nameInfo.boomName, currentAddress);
         
         // For demo purposes, we'll just log it
         // Simulate successful registration
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 500)); // Faster simulation for multiple names
         
-        // You could update the database to track registered names
+        // Track the registration in the database
         await databases.createDocument(
           import.meta.env.VITE_APPWRITE_DATABASE_ID,
           'bns_registrations',
           ID.unique(),
           {
-            name,
-            address: walletAddress.value,
+            boomName: nameInfo.boomName,
+            originalName: nameInfo.originalName,
+            address: currentAddress,
             status: 'pending',
             registeredAt: new Date().toISOString()
           }
         );
       } catch (err) {
-        console.error(`Failed to register name: ${name}`, err);
+        console.error(`Failed to register name: ${nameInfo.boomName}`, err);
         // Continue with other names
       }
     }
     
-    // Show success message or redirect to a success page
-    alert(`Registration initiated for ${selectedNames.length} name(s). Check your wallet to complete the transaction.`);
+    // Show success message
+    if (namesToRegister.length === 1) {
+      alert(`Registration initiated for ${namesToRegister[0].boomName}. Please check your wallet to complete the transaction.`);
+    } else {
+      alert(`Registration initiated for ${namesToRegister.length} names. Please check your wallet to complete the transaction.`);
+    }
     
     // Clear selected names after registration
     selectedNames.value = [];
@@ -347,7 +365,7 @@ function goToStep(step: number) {
     return;
   }
   
-  if (step > 2 && !walletConnected.value) {
+  if (step > 2 && !isWalletConnected) {
     message.value = 'Please connect your wallet first';
     return;
   }
@@ -365,6 +383,11 @@ function prevStep() {
   if (currentStep.value > 1) {
     goToStep(currentStep.value - 1);
   }
+}
+
+// Function to disconnect wallet
+function disconnectWallet() {
+  disconnect();
 }
 </script>
 
@@ -407,8 +430,8 @@ function prevStep() {
                 'w-8 h-8 rounded-full flex items-center justify-center', 
                 currentStep >= 3 ? 'bg-fuchsia-500' : 'bg-gray-700',
                 currentStep === 3 ? 'ring-2 ring-fuchsia-300' : '',
-                !walletConnected ? 'opacity-50 cursor-not-allowed' : ''
-              ]" :disabled="!walletConnected">
+                !isWalletConnected ? 'opacity-50 cursor-not-allowed' : ''
+              ]" :disabled="!isWalletConnected">
               3
             </button>
           </div>
@@ -477,10 +500,20 @@ function prevStep() {
             <h2 class="text-2xl font-bold mb-4">Step 2: Connect Your Stacks Wallet</h2>
             <p class="mb-6">Connect your Stacks wallet to continue with the BNS registration process.</p>
 
-            <div v-if="walletConnected" class="mb-6">
+            <div v-if="isWalletConnected" class="mb-6">
               <div class="p-4 bg-gray-700 rounded-lg">
                 <p class="text-fuchsia-300 font-semibold mb-2">✓ Wallet Connected</p>
-                <p>Your wallet address: <span class="font-mono">{{ walletAddress }}</span></p>
+                <div class="flex items-center mt-2">
+                  <span class="font-mono">{{ truncateAddress(currentAddress) }}</span>
+                  <button
+                    @click="disconnectWallet"
+                    class="ml-3 p-1 rounded-full bg-gray-600 hover:bg-gray-500 text-white"
+                  >
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
               </div>
 
               <div class="mt-6 flex space-x-4">
@@ -505,6 +538,12 @@ function prevStep() {
                 <p class="text-gray-300 mb-4">
                   You'll need to connect your Stacks wallet to register BNS names.
                   This allows you to sign transactions securely.
+                </p>
+                <p class="text-sm text-gray-400 mb-4">
+                  Don't have a Stacks wallet? 
+                  <a href="https://wallet.hiro.so" target="_blank" class="text-fuchsia-400 hover:underline">
+                    Create one here
+                  </a>
                 </p>
               </div>
 
@@ -541,45 +580,88 @@ function prevStep() {
             <div class="mb-6">
               <div class="p-4 bg-gray-700 rounded-lg mb-6">
                 <h3 class="font-semibold mb-2">Your Connected Wallet</h3>
-                <p class="font-mono text-sm mb-4">{{ walletAddress }}</p>
-
-                <h3 class="font-semibold mb-2">Search for BNS Names</h3>
-                <div class="flex flex-col sm:flex-row gap-3 mb-4">
-                  <input v-model="nameToAdd" type="text" placeholder="Enter a name to check"
-                    class="flex-1 p-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-fuchsia-400 focus:ring-2 focus:ring-fuchsia-400/20 outline-none" />
-                  <button @click="checkNameAvailability(nameToAdd)" :disabled="searching || !nameToAdd"
-                    class="px-4 py-2 rounded-lg bg-fuchsia-500 hover:bg-fuchsia-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                    <span v-if="searching">Checking...</span>
-                    <span v-else>Check Availability</span>
+                <div class="flex items-center mb-4">
+                  <span class="font-mono">{{ truncateAddress(currentAddress) }}</span>
+                  <button
+                    @click="disconnectWallet"
+                    class="ml-3 p-1 rounded-full bg-gray-600 hover:bg-gray-500 text-white"
+                  >
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                   </button>
                 </div>
 
+                <h3 class="font-semibold mb-2">Your Reservable .boom.btc Names</h3>
+                
+                <div class="flex justify-between items-center mb-4">
+                  <div v-if="fetchingBnsNames" class="flex items-center">
+                    <svg class="animate-spin h-6 w-6 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Fetching your BNS names...</span>
+                  </div>
+                  <button 
+                    @click="fetchBnsNames"
+                    :disabled="fetchingBnsNames"
+                    class="px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                  >
+                    <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Refresh Names
+                  </button>
+                </div>
+                
                 <div v-if="searchError" class="p-3 bg-red-900/50 rounded-lg mb-4">
                   {{ searchError }}
                 </div>
+                
+                <div v-if="!fetchingBnsNames && userOwnedBtcNames.length === 0" class="p-4 bg-gray-700 rounded-lg mb-4">
+                  <p class="font-semibold mb-2">No .btc Names Found</p>
+                  <p>You don't own any .btc names that can be reserved with .boom.btc.</p>
+                  <p class="mt-2 text-sm text-gray-300">If you believe this is incorrect, please ensure your wallet is correctly connected and try refreshing the page.</p>
+                </div>
+                
+                <div v-if="!fetchingBnsNames && userOwnedBtcNames.length > 0" class="p-4 bg-gray-700 rounded-lg mb-4">
+                  <p class="font-semibold mb-2">{{ userOwnedBtcNames.length }} .btc Name{{ userOwnedBtcNames.length !== 1 ? 's' : '' }} Found</p>
+                  <p>These are the .btc names you currently own, and their equivalent .boom.btc names you can reserve.</p>
+                  <p class="mt-2 text-sm text-gray-300">Please select the names you wish to reserve.</p>
+                </div>
+                
+                <div v-if="fetchingBnsNames" class="p-4 bg-gray-700 rounded-lg mb-4">
+                  <p class="animate-pulse">Loading your reservable names...</p>
+                </div>
 
                 <div v-if="bnsNames.length > 0" class="mb-4">
-                  <h3 class="font-semibold mb-2">Available Names</h3>
+                  <h3 class="font-semibold mb-2">Reservable Names</h3>
                   <div class="space-y-2">
                     <div v-for="(bnsName, index) in bnsNames" :key="index"
-                      class="p-3 bg-gray-800 rounded-lg flex justify-between items-center">
-                      <div>
-                        <span class="font-mono">{{ bnsName.name }}</span>
-                        <span v-if="bnsName.available" class="ml-2 text-green-500 text-sm">Available</span>
-                        <span v-else class="ml-2 text-red-500 text-sm">Unavailable</span>
+                      class="p-3 bg-gray-800 rounded-lg">
+                      <div class="flex justify-between items-center">
+                        <div>
+                          <span class="font-mono text-fuchsia-300">{{ bnsName.name }}</span>
+                          <span class="ml-2 text-green-500 text-sm">Reservable</span>
+                          <span class="ml-2 text-fuchsia-300 text-xs font-medium">FREE</span>
+                        </div>
+                        <div class="flex items-center">
+                          <button v-if="!selectedNames.includes(bnsName.name)"
+                            @click="selectedNames.push(bnsName.name)"
+                            class="px-3 py-1 bg-fuchsia-500 hover:bg-fuchsia-600 rounded">
+                            Reserve
+                          </button>
+                          <button v-else
+                            @click="selectedNames = selectedNames.filter(name => name !== bnsName.name)"
+                            class="px-3 py-1 bg-gray-600 hover:bg-gray-500 rounded">
+                            Remove
+                          </button>
+                        </div>
                       </div>
-                      <div class="flex items-center">
-                        <span class="text-sm mr-3">{{ bnsName.price }} STX</span>
-                        <button v-if="bnsName.available && !selectedNames.includes(bnsName.name)"
-                          @click="selectedNames.push(bnsName.name)"
-                          class="px-3 py-1 bg-fuchsia-500 hover:bg-fuchsia-600 rounded">
-                          Add
-                        </button>
-                        <button v-else-if="selectedNames.includes(bnsName.name)"
-                          @click="selectedNames = selectedNames.filter(name => name !== bnsName.name)"
-                          class="px-3 py-1 bg-gray-600 hover:bg-gray-500 rounded">
-                          Remove
-                        </button>
+                      
+                      <div class="mt-2 text-sm text-gray-400 flex items-center">
+                        <span>Based on your ownership of:</span>
+                        <span class="font-mono ml-2">{{ bnsName.originalName }}</span>
                       </div>
                     </div>
                   </div>

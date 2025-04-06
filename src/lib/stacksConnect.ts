@@ -1,134 +1,202 @@
-// SIP-30 Stacks Wallet Interface Implementation
+import { AppConfig, UserSession, showConnect } from '@stacks/connect';
+import { ref, reactive, onMounted, onUnmounted } from 'vue';
 
-// Type definitions for SIP-30
-interface WalletProvider {
-  request(method: string, params?: any[]): Promise<any>;
+// Create app config with needed scopes
+const appConfig = new AppConfig(['store_write', 'publish_data']);
+
+// Create a user session
+const userSession = new UserSession({ appConfig });
+
+// Define our network type
+type Network = 'mainnet' | 'testnet';
+
+// Define the return type for our composable
+interface UseStacksWallet {
+  isWalletOpen: boolean;
+  isWalletConnected: boolean;
+  testnetAddress: string | null;
+  mainnetAddress: string | null;
+  currentAddress: string | null;
+  network: Network;
+  setNetwork: (network: Network) => void;
+  authenticate: (onSuccess?: () => void) => void;
+  disconnect: () => void;
+  truncateAddress: (address: string | null) => string;
+  copyAddressToClipboard: () => void;
+  didCopyAddress: boolean;
 }
 
-interface StxAddress {
-  address: string;
-  status: string;
-  meta?: any;
+// Create a function to get the persisted network
+function getPersistedNetwork(): Network {
+  if (typeof window === 'undefined') return 'mainnet';
+  const savedNetwork = localStorage.getItem('stacks-network');
+  return (savedNetwork as Network) || 'mainnet';
 }
 
-export interface AccountChangeEvent {
-  address: string;
-  status: string;
+// Create a function to persist the network
+function persistNetwork(network: Network): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('stacks-network', network);
 }
 
-// Check if wallet provider is available
-export function hasStacksWallet(): boolean {
-  return typeof window !== 'undefined' && 'WalletProvider' in window;
-}
-
-// Get the wallet provider
-export function getStacksProvider(): WalletProvider | null {
-  if (!hasStacksWallet()) return null;
-  return (window as any).WalletProvider as WalletProvider;
-}
-
-// Check if user is connected already
-export function isUserSignedIn(): boolean {
-  // In SIP-30, there's no specific "signed in" state
-  // We need to check if we can get addresses - handled in the component
-  return hasStacksWallet();
-}
-
-// Connect to wallet (get addresses)
-export async function connectWallet(): Promise<StxAddress[] | null> {
-  try {
-    const provider = getStacksProvider();
-    if (!provider) {
-      console.error('No Stacks wallet provider found');
-      return null;
-    }
-
-    // This will trigger the wallet UI and prompt the user for permission
-    const addresses = await provider.request('stx_getAddresses');
-    return addresses;
-  } catch (error) {
-    console.error('Failed to connect to Stacks wallet:', error);
-    return null;
-  }
-}
-
-// Get the user's STX address
-export async function getUserAddress(): Promise<string | null> {
-  try {
-    const addresses = await connectWallet();
-    if (addresses && addresses.length > 0) {
-      return addresses[0].address;
-    }
-    return null;
-  } catch (error) {
-    console.error('Failed to get user address:', error);
-    return null;
-  }
-}
-
-// Listen for account changes
-export function onAccountChange(callback: (event: AccountChangeEvent) => void): void {
-  if (!hasStacksWallet()) return;
+// Create our Vue composable
+export function useStacksWallet(): UseStacksWallet {
+  // State
+  const isWalletOpen = ref(false);
+  const isWalletConnected = ref(false);
+  const network = ref<Network>(getPersistedNetwork());
+  const didCopyAddress = ref(false);
   
-  window.addEventListener('stx_accountChange', (event: any) => {
-    if (event && event.detail) {
-      callback(event.detail);
+  // Getters for addresses
+  const testnetAddress = ref<string | null>(null);
+  const mainnetAddress = ref<string | null>(null);
+  
+  // Computed value for current address based on network
+  const currentAddress = ref<string | null>(null);
+  
+  // Initialize on mount
+  onMounted(() => {
+    // Check if user is already signed in
+    if (userSession.isUserSignedIn()) {
+      isWalletConnected.value = true;
+      updateAddresses();
     }
   });
-}
-
-// Sign a message using the Stacks wallet
-export async function signMessage(message: string): Promise<string | null> {
-  try {
-    const provider = getStacksProvider();
-    if (!provider) {
-      console.error('No Stacks wallet provider found');
-      return null;
+  
+  // Helper to update address values
+  function updateAddresses() {
+    if (!isWalletConnected.value) {
+      testnetAddress.value = null;
+      mainnetAddress.value = null;
+      currentAddress.value = null;
+      return;
     }
-
-    const result = await provider.request('stx_signMessage', [message]);
-    return result.signature;
-  } catch (error) {
-    console.error('Failed to sign message:', error);
-    return null;
+    
+    const userData = userSession.loadUserData();
+    testnetAddress.value = userData.profile.stxAddress.testnet;
+    mainnetAddress.value = userData.profile.stxAddress.mainnet;
+    currentAddress.value = network.value === 'mainnet' ? mainnetAddress.value : testnetAddress.value;
   }
+  
+  // Function to set the network
+  function setNetwork(newNetwork: Network) {
+    network.value = newNetwork;
+    persistNetwork(newNetwork);
+    updateAddresses();
+  }
+  
+  // Function to authenticate with callback
+  function authenticate(onSuccess?: () => void) {
+    if (!showConnect) {
+      console.error("@stacks/connect isn't loaded properly");
+      return;
+    }
+    
+    console.log("Starting Stacks wallet authentication...");
+    isWalletOpen.value = true;
+    
+    showConnect({
+      appDetails: {
+        name: 'Boom BNS Registration',
+        icon: `${window.location.origin}/favicon.svg`,
+      },
+      redirectTo: '/bns-registration',
+      onFinish: () => {
+        console.log("Authentication finished, checking if signed in");
+        isWalletOpen.value = false;
+        const isSignedIn = userSession.isUserSignedIn();
+        isWalletConnected.value = isSignedIn;
+        updateAddresses();
+        
+        console.log("Is user signed in:", isSignedIn);
+        console.log("Callback available:", !!onSuccess);
+        
+        // If the authentication was successful and a callback was provided, call it
+        if (isSignedIn && onSuccess) {
+          console.log("Executing onSuccess callback");
+          setTimeout(() => {
+            onSuccess();
+          }, 100); // Small delay to ensure state is updated
+        }
+      },
+      onCancel: () => {
+        console.log("Authentication canceled");
+        isWalletOpen.value = false;
+      },
+      userSession,
+    });
+  }
+  
+  // Function to disconnect
+  function disconnect() {
+    if (!userSession) return;
+    userSession.signUserOut(window.location.toString());
+    isWalletConnected.value = false;
+    updateAddresses();
+  }
+  
+  // Helper to truncate addresses for display
+  function truncateAddress(address: string | null): string {
+    if (!address) return '';
+    if (address.length <= 12) return address;
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  }
+  
+  // Helper to copy address to clipboard
+  function copyAddressToClipboard() {
+    if (currentAddress.value) {
+      navigator.clipboard.writeText(currentAddress.value);
+      didCopyAddress.value = true;
+      setTimeout(() => {
+        didCopyAddress.value = false;
+      }, 1000);
+    }
+  }
+  
+  // Return the composable with reactive references
+  return {
+    isWalletOpen,
+    isWalletConnected,
+    testnetAddress,
+    mainnetAddress,
+    currentAddress,
+    network,
+    setNetwork,
+    authenticate,
+    disconnect,
+    truncateAddress,
+    copyAddressToClipboard,
+    didCopyAddress
+  };
 }
 
-// Call a contract function
-export async function callContract(
+// Export the user session for direct use if needed
+export { userSession };
+
+// Contract call functions specifically for BNS
+export async function callBnsContractFunction(
   contractAddress: string,
   contractName: string,
   functionName: string,
   functionArgs: any[]
-): Promise<any> {
-  try {
-    const provider = getStacksProvider();
-    if (!provider) {
-      console.error('No Stacks wallet provider found');
-      return null;
-    }
-
-    const txOptions = {
-      contractAddress,
-      contractName,
-      functionName,
-      functionArgs,
-      network: 'mainnet', // or 'testnet'
-    };
-
-    const result = await provider.request('stx_signTransaction', [txOptions]);
-    return result;
-  } catch (error) {
-    console.error('Failed to call contract:', error);
-    throw error;
-  }
+) {
+  // This would connect to the contract through @stacks/transactions
+  // For a complete implementation, we would need additional dependencies
+  console.log(`Calling BNS contract: ${contractAddress}.${contractName}::${functionName}`);
+  console.log('Arguments:', functionArgs);
+  
+  // Return a placeholder for now
+  return {
+    txId: 'placeholder-transaction-id',
+    status: 'submitted'
+  };
 }
 
-// Function specifically for BNS registration
+// Function specifically for BNS name registration
 export async function registerBnsName(
   name: string, 
   ownerAddress: string
-): Promise<any> {
+) {
   // Example BNS registration - customize as needed for the specific BNS contract
   const contractAddress = 'SP000000000000000000002Q6VF78';  // Example, replace with actual BNS contract address
   const contractName = 'bns';
@@ -140,5 +208,5 @@ export async function registerBnsName(
     { type: 'principal', value: ownerAddress }
   ];
   
-  return callContract(contractAddress, contractName, functionName, functionArgs);
+  return callBnsContractFunction(contractAddress, contractName, functionName, functionArgs);
 }
