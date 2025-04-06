@@ -12,6 +12,8 @@ import Release from './pages/Release.vue';
 import SmartShops from './pages/SmartShops.vue';
 import BasicSignup from './pages/BasicSignup.vue';
 import ProSignup from './pages/ProSignup.vue';
+import BnsRegistration from './pages/BnsRegistration.vue';
+import BnsSession from './pages/BnsSession.vue';
 
 const routes = [
   { path: '/', component: Home },
@@ -26,6 +28,8 @@ const routes = [
   { path: '/merchants', component: SmartShops },
   { path: '/basic-signup', component: BasicSignup },
   { path: '/pro-signup', component: ProSignup },
+  { path: '/bns-registration', component: BnsRegistration },
+  { path: '/bns-verify', component: BnsSession },
 ];
 
 const router = createRouter({
