@@ -2,8 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue';
 import { ID } from 'appwrite';
 import { account, databases } from '../lib/appwrite';
-import { useStacksWallet, registerBnsName } from '../lib/stacksConnect';
-import { fetchUserOwnedNames } from 'bns-v2-sdk';
+import { useStacksWallet, registerBnsName, fetchUserOwnedBtcNamesFromApi } from '../lib/stacksConnect';
 import AppLayout from '../components/AppLayout.vue';
 
 // Initialize the Stacks wallet composable
@@ -60,14 +59,14 @@ onMounted(async () => {
     }
     
     // Check for wallet
-    if (isWalletConnected) {
-      console.log('Wallet already connected:', currentAddress);
+    if (isWalletConnected.value) {
+      console.log('Wallet already connected:', currentAddress.value);
       
       // If the wallet is connected and we have its address
-      if (currentAddress) {
+      if (currentAddress.value) {
         // Update user record in database if account exists
         if (hasAccount.value) {
-          await updateUserWallet(currentAddress);
+          await updateUserWallet(currentAddress.value);
           // Move to step 3 since we have both account and wallet
           currentStep.value = 3;
         }
@@ -98,22 +97,7 @@ async function registerWithBoom() {
     const redirectUrl = `${window.location.origin}/bns-verify`;
 
     await account.createMagicURLToken(userId, email.value, redirectUrl);
-    
-    // Store additional preferences if available
-    try {
-      await databases.createDocument(
-        import.meta.env.VITE_APPWRITE_DATABASE_ID, 
-        'bns_users',
-        ID.unique(),
-        {
-          email: email.value,
-          step: 1
-        }
-      );
-    } catch (dbErr) {
-      console.error('Failed to save user data:', dbErr);
-    }
-    
+        
     message.value = 'Check your email for the verification link!';
     sent.value = true;
   } catch (err: any) {
@@ -135,15 +119,15 @@ function handleConnectWallet() {
     // Call authenticate from our composable with a success callback
     authenticate(() => {
       console.log("Wallet connection callback triggered");
-      console.log("Current address:", currentAddress);
+      console.log("Current address value:", currentAddress.value);
       
       // We need to ensure there's an address before proceeding
-      if (currentAddress) {
+      if (currentAddress && currentAddress.value) {
         console.log("Valid address found, updating database and moving to step 3");
         
         // Create a promise chain to ensure proper flow
         Promise.resolve()
-          .then(() => updateUserWallet(currentAddress))
+          .then(() => updateUserWallet(currentAddress.value))
           .then(() => {
             console.log("Database updated, moving to step 3");
             
@@ -178,49 +162,11 @@ async function updateUserWallet(address: string) {
   try {
     // Get the current user
     const currentUser = await account.get();
+    console.log('current address: ', address);
     
     if (currentUser) {
       // Try to find an existing record for this user
-      try {
-        const query = [
-          `email=${currentUser.email}`
-        ];
-        
-        const existingRecords = await databases.listDocuments(
-          import.meta.env.VITE_APPWRITE_DATABASE_ID,
-          'bns_users',
-          query
-        );
-        
-        if (existingRecords.documents.length > 0) {
-          // Update existing record
-          const userDoc = existingRecords.documents[0];
-          await databases.updateDocument(
-            import.meta.env.VITE_APPWRITE_DATABASE_ID,
-            'bns_users',
-            userDoc.$id,
-            {
-              walletAddress: address,
-              step: 2
-            }
-          );
-        } else {
-          // Create new record
-          await databases.createDocument(
-            import.meta.env.VITE_APPWRITE_DATABASE_ID,
-            'bns_users',
-            ID.unique(),
-            {
-              email: currentUser.email,
-              walletAddress: address,
-              step: 2
-            }
-          );
-        }
-      } catch (dbErr) {
-        console.error('Database operation failed:', dbErr);
-        // If we can't update the database, still allow the user to continue
-      }
+
     }
   } catch (error) {
     console.error('Error updating user wallet:', error);
@@ -237,23 +183,18 @@ async function fetchBnsNames() {
   userOwnedBtcNames.value = []; // Clear existing list
   
   try {
-    console.log("Fetching BNS names for address:", currentAddress);
+    // Debug the actual address value, not the ref object
+    console.log("Fetching BNS names for address value:", currentAddress.value);
     
-    // Fetch all names owned by the user
-    const ownedNames = await fetchUserOwnedNames({
-      senderAddress: currentAddress,
-      network: "mainnet",
-    });
+    // Ensure we have a valid address
+    if (!currentAddress || !currentAddress.value) return;
     
-    console.log("User owned names:", ownedNames);
-    
-    // Filter for only names in the 'btc' namespace
-    const btcNames = ownedNames.filter(nameObj => nameObj.namespace === 'btc')
-      .map(nameObj => `${nameObj.name}.${nameObj.namespace}`);
+    // Fetch BTC names from the BNSv2 API directly - pass the actual string value
+    const btcNames = await fetchUserOwnedBtcNamesFromApi(currentAddress.value);
     
     userOwnedBtcNames.value = btcNames;
     
-    console.log("BTC names:", btcNames);
+    console.log("BTC names from BNSv2 API:", btcNames);
     
     // For each .btc name, create a reservable .boom.btc name
     for (const btcName of btcNames) {
@@ -387,7 +328,36 @@ function prevStep() {
 
 // Function to disconnect wallet
 function disconnectWallet() {
+  // First update the UI state
+  bnsNames.value = [];
+  selectedNames.value = [];
+  userOwnedBtcNames.value = [];
+  currentStep.value = 2;
+  
+  // Then call the disconnect function which updates isWalletConnected
   disconnect();
+  
+  // Double-check that we're properly disconnected
+  setTimeout(() => {
+    if (isWalletConnected.value) {
+      isWalletConnected.value = false;
+      console.log('Forced wallet disconnection state');
+    }
+  }, 100);
+}
+
+// Helper function to copy an address to clipboard
+function copyAddressToClipboard(address: string | null) {
+  if (!address) return;
+  
+  navigator.clipboard.writeText(address)
+    .then(() => {
+      // Show a temporary toast or message
+      alert('Address copied to clipboard');
+    })
+    .catch(err => {
+      console.error('Could not copy text: ', err);
+    });
 }
 </script>
 
@@ -577,19 +547,57 @@ function disconnectWallet() {
             <p class="mb-6">Choose the Bitcoin names you'd like to register. You can check availability and select
               multiple names.</p>
 
-            <div class="mb-6">
+            <div v-if="!isWalletConnected" class="mb-6">
+              <div class="p-6 bg-gray-700 rounded-lg text-center mb-6">
+                <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <h3 class="text-xl font-medium mb-2">Wallet Connection Required</h3>
+                <p class="text-gray-300 mb-4">
+                  Your wallet appears to be disconnected. Please go back to Step 2 and connect your wallet.
+                </p>
+                <button @click="currentStep = 2" class="px-6 py-3 rounded-lg bg-fuchsia-500 hover:bg-fuchsia-600 transition-colors">
+                  Return to Step 2
+                </button>
+              </div>
+            </div>
+            
+            <div v-else class="mb-6">
               <div class="p-4 bg-gray-700 rounded-lg mb-6">
                 <h3 class="font-semibold mb-2">Your Connected Wallet</h3>
-                <div class="flex items-center mb-4">
-                  <span class="font-mono">{{ truncateAddress(currentAddress) }}</span>
-                  <button
-                    @click="disconnectWallet"
-                    class="ml-3 p-1 rounded-full bg-gray-600 hover:bg-gray-500 text-white"
-                  >
-                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-3 bg-gray-800 rounded-lg mb-4">
+                  <div class="flex items-center">
+                    <span class="font-mono">{{ truncateAddress(currentAddress) }}</span>
+                    <button
+                      @click="copyAddressToClipboard(currentAddress)"
+                      class="ml-2 p-1 rounded-full bg-gray-700 hover:bg-gray-600 text-white"
+                      title="Copy address"
+                    >
+                      <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="flex space-x-2">
+                    <button
+                      @click="handleConnectWallet"
+                      class="px-3 py-1.5 rounded bg-fuchsia-500 hover:bg-fuchsia-600 text-white text-sm flex items-center"
+                    >
+                      <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      Connect Another
+                    </button>
+                    <button
+                      @click="disconnectWallet"
+                      class="px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600 text-white text-sm flex items-center"
+                    >
+                      <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      Disconnect
+                    </button>
+                  </div>
                 </div>
 
                 <h3 class="font-semibold mb-2">Your Reservable .boom.btc Names</h3>

@@ -173,6 +173,52 @@ export function useStacksWallet(): UseStacksWallet {
 // Export the user session for direct use if needed
 export { userSession };
 
+// Interface for BNSv2 API response
+interface BnsV2ApiResponse {
+  total: number;
+  current_burn_block: number;
+  limit: number;
+  offset: number;
+  names: {
+    full_name: string;
+    name_string: string;
+    namespace_string: string;
+    owner: string;
+    registered_at: string;
+    renewal_height: string;
+    stx_burn: string;
+    revoked: boolean;
+  }[];
+}
+
+// Function to fetch user owned BTC names from BNSv2 API directly
+export async function fetchUserOwnedBtcNamesFromApi(stacksAddress: string | any): Promise<string[]> {
+  try {
+    // Ensure stacksAddress is treated as a string
+    const addressStr = String(stacksAddress);
+    console.log(`Fetching names for address ${addressStr} from BNSv2 API`);
+    const response = await fetch(`https://api.bnsv2.com/names/address/${addressStr}/valid`);
+    
+    if (!response.ok) {
+      throw new Error(`BNSv2 API response error: ${response.status} ${response.statusText}`);
+    }
+    
+    const data: BnsV2ApiResponse = await response.json();
+    console.log('BNSv2 API response:', data);
+    
+    // Filter names to only include .btc names and map to full names
+    const btcNames = data.names
+      .filter(name => name.namespace_string === 'btc')
+      .map(name => name.full_name);
+    
+    console.log('Filtered .btc names:', btcNames);
+    return btcNames;
+  } catch (error) {
+    console.error('Error fetching BTC names from BNSv2 API:', error);
+    throw error;
+  }
+}
+
 // Contract call functions specifically for BNS
 export async function callBnsContractFunction(
   contractAddress: string,
