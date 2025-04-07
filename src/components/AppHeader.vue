@@ -44,7 +44,6 @@ const toggleMenu = () => {
         <ul class="flex flex-col font-medium md:flex-row md:justify-center md:self-center md:text-[0.9375rem] md:w-auto text-xl tracking-[0.01rem] w-full">
           <li><a class="flex items-center dark:hover:text-white hover:text-link px-4 py-3" href="/#features">Features</a></li>
           <li><router-link class="flex items-center dark:hover:text-white hover:text-link px-4 py-3" to="/merchants">Merchants/Creators</router-link></li>
-          <li><router-link class="flex items-center dark:hover:text-white hover:text-link px-4 py-3" to="/bns-registration">BNS Names</router-link></li>
           <li><a class="flex items-center dark:hover:text-white hover:text-link px-4 py-3" href="https://blog.boom.money">Blog</a></li>
           <li><a class="flex items-center dark:hover:text-white hover:text-link px-4 py-3" href="https://docs.boom.money">Docs</a></li>
         </ul>

@@ -369,7 +369,10 @@ function copyAddressToClipboard(address: string | null) {
         <div class="max-w-4xl mx-auto text-center">
           <h1 class="text-4xl md:text-5xl font-bold mb-6">Reserve Your Bitcoin Name</h1>
           <p class="text-xl mb-8">
-            Secure your existing Bitcoin name on Boom's new Bitcoin namespace.
+            Secure your existing Bitcoin name on Boom's new Bitcoin namespace.<br />
+            <span class="text-center text-fuchsia-500 font-semibold">
+              .boom.btc
+            </span>
           </p>
 
           <!-- Progress Bar -->
@@ -475,11 +478,10 @@ function copyAddressToClipboard(address: string | null) {
                 <p class="text-fuchsia-300 font-semibold mb-2">✓ Wallet Connected</p>
                 <div class="flex items-center mt-2">
                   <span class="font-mono">{{ truncateAddress(currentAddress) }}</span>
-                  <button
-                    @click="disconnectWallet"
-                    class="ml-3 p-1 rounded-full bg-gray-600 hover:bg-gray-500 text-white"
-                  >
-                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <button @click="disconnectWallet"
+                    class="ml-3 p-1 rounded-full bg-gray-600 hover:bg-gray-500 text-white">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
@@ -510,7 +512,7 @@ function copyAddressToClipboard(address: string | null) {
                   This allows you to sign transactions securely.
                 </p>
                 <p class="text-sm text-gray-400 mb-4">
-                  Don't have a Stacks wallet? 
+                  Don't have a Stacks wallet?
                   <a href="https://wallet.hiro.so" target="_blank" class="text-fuchsia-400 hover:underline">
                     Create one here
                   </a>
@@ -549,51 +551,54 @@ function copyAddressToClipboard(address: string | null) {
 
             <div v-if="!isWalletConnected" class="mb-6">
               <div class="p-6 bg-gray-700 rounded-lg text-center mb-6">
-                <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+                  viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
                 <h3 class="text-xl font-medium mb-2">Wallet Connection Required</h3>
                 <p class="text-gray-300 mb-4">
                   Your wallet appears to be disconnected. Please go back to Step 2 and connect your wallet.
                 </p>
-                <button @click="currentStep = 2" class="px-6 py-3 rounded-lg bg-fuchsia-500 hover:bg-fuchsia-600 transition-colors">
+                <button @click="currentStep = 2"
+                  class="px-6 py-3 rounded-lg bg-fuchsia-500 hover:bg-fuchsia-600 transition-colors">
                   Return to Step 2
                 </button>
               </div>
             </div>
-            
+
             <div v-else class="mb-6">
               <div class="p-4 bg-gray-700 rounded-lg mb-6">
                 <h3 class="font-semibold mb-2">Your Connected Wallet</h3>
-                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-3 bg-gray-800 rounded-lg mb-4">
+                <div
+                  class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-3 bg-gray-800 rounded-lg mb-4">
                   <div class="flex items-center">
                     <span class="font-mono">{{ truncateAddress(currentAddress) }}</span>
-                    <button
-                      @click="copyAddressToClipboard(currentAddress)"
-                      class="ml-2 p-1 rounded-full bg-gray-700 hover:bg-gray-600 text-white"
-                      title="Copy address"
-                    >
-                      <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                    <button @click="copyAddressToClipboard(currentAddress)"
+                      class="ml-2 p-1 rounded-full bg-gray-700 hover:bg-gray-600 text-white" title="Copy address">
+                      <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
                       </svg>
                     </button>
                   </div>
                   <div class="flex space-x-2">
-                    <button
-                      @click="handleConnectWallet"
-                      class="px-3 py-1.5 rounded bg-fuchsia-500 hover:bg-fuchsia-600 text-white text-sm flex items-center"
-                    >
-                      <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    <button @click="handleConnectWallet"
+                      class="px-3 py-1.5 rounded bg-fuchsia-500 hover:bg-fuchsia-600 text-white text-sm flex items-center">
+                      <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                       </svg>
                       Connect Another
                     </button>
-                    <button
-                      @click="disconnectWallet"
-                      class="px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600 text-white text-sm flex items-center"
-                    >
-                      <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    <button @click="disconnectWallet"
+                      class="px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600 text-white text-sm flex items-center">
+                      <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                       </svg>
                       Disconnect
                     </button>
@@ -601,43 +606,48 @@ function copyAddressToClipboard(address: string | null) {
                 </div>
 
                 <h3 class="font-semibold mb-2">Your Reservable .boom.btc Names</h3>
-                
+
                 <div class="flex justify-between items-center mb-4">
                   <div v-if="fetchingBnsNames" class="flex items-center">
-                    <svg class="animate-spin h-6 w-6 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg class="animate-spin h-6 w-6 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none"
+                      viewBox="0 0 24 24">
                       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                      </path>
                     </svg>
                     <span>Fetching your BNS names...</span>
                   </div>
-                  <button 
-                    @click="fetchBnsNames"
-                    :disabled="fetchingBnsNames"
-                    class="px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-                  >
-                    <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  <button @click="fetchBnsNames" :disabled="fetchingBnsNames"
+                    class="px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center">
+                    <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
                     Refresh Names
                   </button>
                 </div>
-                
+
                 <div v-if="searchError" class="p-3 bg-red-900/50 rounded-lg mb-4">
                   {{ searchError }}
                 </div>
-                
+
                 <div v-if="!fetchingBnsNames && userOwnedBtcNames.length === 0" class="p-4 bg-gray-700 rounded-lg mb-4">
                   <p class="font-semibold mb-2">No .btc Names Found</p>
                   <p>You don't own any .btc names that can be reserved with .boom.btc.</p>
-                  <p class="mt-2 text-sm text-gray-300">If you believe this is incorrect, please ensure your wallet is correctly connected and try refreshing the page.</p>
+                  <p class="mt-2 text-sm text-gray-300">If you believe this is incorrect, please ensure your wallet is
+                    correctly connected and try refreshing the page.</p>
                 </div>
-                
+
                 <div v-if="!fetchingBnsNames && userOwnedBtcNames.length > 0" class="p-4 bg-gray-700 rounded-lg mb-4">
-                  <p class="font-semibold mb-2">{{ userOwnedBtcNames.length }} .btc Name{{ userOwnedBtcNames.length !== 1 ? 's' : '' }} Found</p>
-                  <p>These are the .btc names you currently own, and their equivalent .boom.btc names you can reserve.</p>
+                  <p class="font-semibold mb-2">{{ userOwnedBtcNames.length }} .btc Name{{ userOwnedBtcNames.length !==
+                    1 ? 's' : '' }} Found</p>
+                  <p>These are the .btc names you currently own, and their equivalent .boom.btc names you can reserve.
+                  </p>
                   <p class="mt-2 text-sm text-gray-300">Please select the names you wish to reserve.</p>
                 </div>
-                
+
                 <div v-if="fetchingBnsNames" class="p-4 bg-gray-700 rounded-lg mb-4">
                   <p class="animate-pulse">Loading your reservable names...</p>
                 </div>
@@ -645,8 +655,7 @@ function copyAddressToClipboard(address: string | null) {
                 <div v-if="bnsNames.length > 0" class="mb-4">
                   <h3 class="font-semibold mb-2">Reservable Names</h3>
                   <div class="space-y-2">
-                    <div v-for="(bnsName, index) in bnsNames" :key="index"
-                      class="p-3 bg-gray-800 rounded-lg">
+                    <div v-for="(bnsName, index) in bnsNames" :key="index" class="p-3 bg-gray-800 rounded-lg">
                       <div class="flex justify-between items-center">
                         <div>
                           <span class="font-mono text-fuchsia-300">{{ bnsName.name }}</span>
@@ -654,19 +663,17 @@ function copyAddressToClipboard(address: string | null) {
                           <span class="ml-2 text-fuchsia-300 text-xs font-medium">FREE</span>
                         </div>
                         <div class="flex items-center">
-                          <button v-if="!selectedNames.includes(bnsName.name)"
-                            @click="selectedNames.push(bnsName.name)"
+                          <button v-if="!selectedNames.includes(bnsName.name)" @click="selectedNames.push(bnsName.name)"
                             class="px-3 py-1 bg-fuchsia-500 hover:bg-fuchsia-600 rounded">
                             Reserve
                           </button>
-                          <button v-else
-                            @click="selectedNames = selectedNames.filter(name => name !== bnsName.name)"
+                          <button v-else @click="selectedNames = selectedNames.filter(name => name !== bnsName.name)"
                             class="px-3 py-1 bg-gray-600 hover:bg-gray-500 rounded">
                             Remove
                           </button>
                         </div>
                       </div>
-                      
+
                       <div class="mt-2 text-sm text-gray-400 flex items-center">
                         <span>Based on your ownership of:</span>
                         <span class="font-mono ml-2">{{ bnsName.originalName }}</span>
@@ -720,9 +727,8 @@ function copyAddressToClipboard(address: string | null) {
                     d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </div>
-              <h3 class="text-xl font-bold mb-2">Extend your digital identity</h3>
-              <p>Your BNS name serves as your digital identity across the Bitcoin ecosystem, making it easier for others
-                to find and connect with you.</p>
+              <h3 class="text-xl font-bold mb-2">Community</h3>
+              <p>Be part of a community of users focused to growing the Bitcoin economy.</p>
             </div>
 
             <div class="bg-gray-800 p-6 rounded-lg">
@@ -734,21 +740,18 @@ function copyAddressToClipboard(address: string | null) {
                 </svg>
               </div>
               <h3 class="text-xl font-bold mb-2">Protect your brand</h3>
-              <p>BNS names are secured by Bitcoin's blockchain, providing unparalleled security and true ownership of
-                your digital namespace.</p>
+              <p>Maintain your digital identity across the Bitcoin ecosystem.</p>
             </div>
 
             <div class="bg-gray-800 p-6 rounded-lg">
               <div class="flex items-center justify-center w-12 h-12 rounded-full bg-fuchsia-500 mb-4">
-                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M13 10V3L4 14h7v7l9-11h-7z" />
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="21">
+                  <path
+                    d="M2 16v3H0v2h16v-2h-2v-3a6 6 0 0 0-3.6-5.5A6 6 0 0 0 14 5V2h2V0H0v2h2v3a6 6 0 0 0 3.605 5.5A6 6 0 0 0 2 16zM4 3.918V2h8v1.918zM8 12a3.993 3.993 0 0 1 3.833 2.918H4.167A3.993 3.993 0 0 1 8 12z" fill="#fff" />
                 </svg>
               </div>
-              <h3 class="text-xl font-bold mb-2">Simplified Transactions</h3>
-              <p>Replace complex wallet addresses with human-readable names for easier and error-free Bitcoin and Stacks
-                transactions.</p>
+              <h3 class="text-xl font-bold mb-2">Limited Reservation Window</h3>
+              <p>Reserve now. At launch time, all unreserved names will be available to new users.</p>
             </div>
           </div>
         </div>
@@ -772,21 +775,34 @@ function copyAddressToClipboard(address: string | null) {
             </div>
 
             <div class="bg-gray-800 p-6 rounded-lg">
-              <h3 class="text-xl font-bold mb-2">How long do BNS names last?</h3>
-              <p>BNS names are registered for a period of 1 year by default. You can renew your names before they expire
-                to maintain ownership. Names that expire will become available for others to register.</p>
+              <h3 class="text-xl font-bold mb-2">Do I need to have a <span
+                  class="text-center text-fuchsia-500 font-semibold">
+                  .boom.btc
+                </span>
+                name to use Boom?</h3>
+              <p>No. Your existing BNS name(s) will work just fine. This is a convenience offered to the existing BNS
+                community.</p>
             </div>
 
             <div class="bg-gray-800 p-6 rounded-lg">
-              <h3 class="text-xl font-bold mb-2">How much does a BNS name cost?</h3>
-              <p>The cost of a BNS name depends on its length. Shorter names generally cost more than longer names. The
-                exact pricing will be displayed during the registration process.</p>
+              <h3 class="text-xl font-bold mb-2">How much does a <span
+                  class="text-center text-fuchsia-500 font-semibold">
+                  .boom.btc
+                </span>
+                name cost?</h3>
+              <p> <span class="text-center text-fuchsia-500 font-semibold">
+                  .boom.btc
+                </span>
+                names are free.</p>
             </div>
 
             <div class="bg-gray-800 p-6 rounded-lg">
-              <h3 class="text-xl font-bold mb-2">Can I register multiple BNS names?</h3>
-              <p>Yes, you can register as many BNS names as you want, provided they are available and you pay the
-                registration fee for each name.</p>
+              <h3 class="text-xl font-bold mb-2">I don't have a .btc name, can I still reserve a <span
+                  class="text-center text-fuchsia-500 font-semibold">
+                  .boom.btc
+                </span>
+                name?</h3>
+              <p>Yes, but not at this time. This early reservation period is only for existing holders of .btc names</p>
             </div>
           </div>
         </div>
