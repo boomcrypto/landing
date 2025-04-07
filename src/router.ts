@@ -10,8 +10,6 @@ import Press from './pages/Press.vue';
 import Testimonials from './pages/Testimonials.vue';
 import Release from './pages/Release.vue';
 import SmartShops from './pages/SmartShops.vue';
-import BasicSignup from './pages/BasicSignup.vue';
-import ProSignup from './pages/ProSignup.vue';
 import BnsRegistration from './pages/BnsRegistration.vue';
 import BnsSession from './pages/BnsSession.vue';
 
@@ -26,9 +24,7 @@ const routes = [
   { path: '/testimonials', component: Testimonials },
   { path: '/press-release/:slug', component: Release },
   { path: '/merchants', component: SmartShops },
-  { path: '/basic-signup', component: BasicSignup },
-  { path: '/pro-signup', component: ProSignup },
-  { path: '/bns-registration', component: BnsRegistration },
+  { path: '/reserve', component: BnsRegistration },
   { path: '/bns-verify', component: BnsSession },
 ];
 
