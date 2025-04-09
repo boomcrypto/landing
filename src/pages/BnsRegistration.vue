@@ -286,9 +286,9 @@ async function registerNames() {
     
     // Show success message
     if (namesToRegister.length === 1) {
-      alert(`Reservation successfully submitted for. ${namesToRegister[0].boomName} will be available when Boom launches.`);
+      alert(`Reservation successfully submitted. ${namesToRegister[0].boomName} will be available when Boom launches.`);
     } else {
-      alert(`Reservation successfully submitted for ${namesToRegister.length} names. You're names will be available when Boom launches.`);
+      alert(`Reservation successfully submitted for ${namesToRegister.length} names. Your names will be available when Boom launches.`);
     }
     
     // Clear selected names after registration
