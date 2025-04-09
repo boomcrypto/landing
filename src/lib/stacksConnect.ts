@@ -1,5 +1,5 @@
 import { AppConfig, UserSession, showConnect } from '@stacks/connect';
-import { ref, reactive, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, type Ref } from 'vue';
 
 // Create app config with needed scopes
 const appConfig = new AppConfig(['store_write', 'publish_data']);
@@ -12,18 +12,18 @@ type Network = 'mainnet' | 'testnet';
 
 // Define the return type for our composable
 interface UseStacksWallet {
-  isWalletOpen: boolean;
-  isWalletConnected: boolean;
-  testnetAddress: string | null;
-  mainnetAddress: string | null;
-  currentAddress: string | null;
-  network: Network;
+  isWalletOpen: Ref<boolean>;
+  isWalletConnected: Ref<boolean>;
+  testnetAddress: Ref<string | null>;
+  mainnetAddress: Ref<string | null>;
+  currentAddress: Ref<string | null>;
+  network: Ref<Network>;
   setNetwork: (network: Network) => void;
   authenticate: (onSuccess?: () => void) => void;
   disconnect: () => void;
   truncateAddress: (address: string | null) => string;
   copyAddressToClipboard: () => void;
-  didCopyAddress: boolean;
+  didCopyAddress: Ref<boolean>;
 }
 
 // Create a function to get the persisted network
@@ -192,10 +192,22 @@ interface BnsV2ApiResponse {
 }
 
 // Function to fetch user owned BTC names from BNSv2 API directly
-export async function fetchUserOwnedBtcNamesFromApi(stacksAddress: string | any): Promise<string[]> {
+export async function fetchUserOwnedBtcNamesFromApi(stacksAddress: string | Ref<string | null> | { toString(): string }): Promise<string[]> {
   try {
-    // Ensure stacksAddress is treated as a string
-    const addressStr = String(stacksAddress);
+    // Handle if the address is a ref or a string
+    let addressStr: string;
+    
+    if (typeof stacksAddress === 'object' && 'value' in stacksAddress) {
+      // It's a ref
+      if (!stacksAddress.value) {
+        throw new Error('Address ref is null or undefined');
+      }
+      addressStr = String(stacksAddress.value);
+    } else {
+      // It's a regular value
+      addressStr = String(stacksAddress);
+    }
+    
     console.log(`Fetching names for address ${addressStr} from BNSv2 API`);
     const response = await fetch(`https://api.bnsv2.com/names/address/${addressStr}/valid`);
     

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useStacksWallet, fetchUserOwnedBtcNamesFromApi, callBnsContractFunction, registerBnsName } from '../../lib/stacksConnect';
 import { nextTick } from 'vue';
 
@@ -92,7 +92,6 @@ describe('useStacksWallet', () => {
 
   it('should authenticate and update state', async () => {
     // Mock UserSession.isUserSignedIn to return true after authentication
-    const mockUserSession = vi.mocked(useStacksWallet().authenticate).mock.calls[0][0];
     vi.mock('@stacks/connect', () => ({
       ...vi.importActual('@stacks/connect'),
       UserSession: vi.fn().mockImplementation(() => ({
@@ -202,7 +201,7 @@ describe('fetchUserOwnedBtcNamesFromApi', () => {
       ]
     };
     
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    (global.fetch as any).mockResolvedValueOnce({
       ok: true,
       json: async () => mockResponse
     });
@@ -219,7 +218,7 @@ describe('fetchUserOwnedBtcNamesFromApi', () => {
 
   it('should handle API errors', async () => {
     // Mock API error
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    (global.fetch as any).mockResolvedValueOnce({
       ok: false,
       status: 404,
       statusText: 'Not Found'
@@ -236,7 +235,7 @@ describe('fetchUserOwnedBtcNamesFromApi', () => {
 
   it('should handle fetch errors', async () => {
     // Mock network error
-    (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network failure'));
+    (global.fetch as any).mockRejectedValueOnce(new Error('Network failure'));
     
     // Verify error is thrown
     await expect(fetchUserOwnedBtcNamesFromApi('test-address-123'))
@@ -245,7 +244,7 @@ describe('fetchUserOwnedBtcNamesFromApi', () => {
   });
 
   it('should handle and convert non-string addresses', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    (global.fetch as any).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ total: 0, names: [] })
     });

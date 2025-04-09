@@ -45,12 +45,11 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { account } from '../lib/appwrite'
 import AppLayout from '../components/AppLayout.vue'
 
 const route = useRoute()
-const router = useRouter()
 const statusMessage = ref('Verifying your account...')
 const errorMessage = ref('Failed to verify your account. Please try again.')
 const verifying = ref(true)

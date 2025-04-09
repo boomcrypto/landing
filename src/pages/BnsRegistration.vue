@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue';
 import { ID } from 'appwrite';
 import { account, databases } from '../lib/appwrite';
-import { useStacksWallet, registerBnsName, fetchUserOwnedBtcNamesFromApi } from '../lib/stacksConnect';
+import { useStacksWallet, fetchUserOwnedBtcNamesFromApi } from '../lib/stacksConnect';
 import AppLayout from '../components/AppLayout.vue';
 
 // Initialize the Stacks wallet composable
@@ -31,10 +31,8 @@ const walletConnecting = ref(false);
 // Step 3 - BNS Name Selection
 const bnsNames = ref<{ name: string, originalName: string, available: boolean }[]>([]);
 const selectedNames = ref<string[]>([]);
-const searching = ref(false);
 const fetchingBnsNames = ref(false);
 const searchError = ref<string | null>(null);
-const nameToAdd = ref('');
 const userOwnedBtcNames = ref<string[]>([]);
 
 // Progress tracking
@@ -127,7 +125,13 @@ function handleConnectWallet() {
         
         // Create a promise chain to ensure proper flow
         Promise.resolve()
-          .then(() => updateUserWallet(currentAddress.value))
+          .then(() => {
+            // Make sure we have a non-null value before passing to updateUserWallet
+            if (currentAddress.value) {
+              return updateUserWallet(currentAddress.value);
+            }
+            return Promise.resolve();
+          })
           .then(() => {
             console.log("Database updated, moving to step 3");
             
@@ -166,7 +170,8 @@ async function updateUserWallet(address: string) {
     
     if (currentUser) {
       // Try to find an existing record for this user
-
+      // For now just log that we would update the user wallet
+      console.log(`Would update user ${currentUser.$id} with wallet address ${address}`);
     }
   } catch (error) {
     console.error('Error updating user wallet:', error);
@@ -175,7 +180,7 @@ async function updateUserWallet(address: string) {
 
 // Function to fetch BNS names owned by the user
 async function fetchBnsNames() {
-  if (!currentAddress) return;
+  if (!currentAddress.value) return;
   
   fetchingBnsNames.value = true;
   searchError.value = null;
@@ -187,7 +192,7 @@ async function fetchBnsNames() {
     console.log("Fetching BNS names for address value:", currentAddress.value);
     
     // Ensure we have a valid address
-    if (!currentAddress || !currentAddress.value) return;
+    if (!currentAddress.value) return;
     
     // Fetch BTC names from the BNSv2 API directly - pass the actual string value
     const btcNames = await fetchUserOwnedBtcNamesFromApi(currentAddress.value);
@@ -223,21 +228,21 @@ async function fetchBnsNames() {
 
 // Watch for wallet connection and fetch names when connected
 watch(isWalletConnected, (newValue) => {
-  if (newValue && currentStep.value === 3 && currentAddress) {
+  if (newValue && currentStep.value === 3 && currentAddress.value) {
     fetchBnsNames();
   }
 });
 
 // Also watch current step to load names when arriving at step 3
 watch(currentStep, (newValue) => {
-  if (newValue === 3 && isWalletConnected.value && currentAddress) {
+  if (newValue === 3 && isWalletConnected.value && currentAddress.value) {
     fetchBnsNames();
   }
 });
 
 // Function to register the selected names
 async function registerNames() {
-  if (!currentAddress || selectedNames.value.length === 0) return;
+  if (!currentAddress.value || selectedNames.value.length === 0) return;
   
   try {
     // Find the corresponding original BTC names for each selected boom.btc name
@@ -255,7 +260,7 @@ async function registerNames() {
     // For each selected name
     for (const nameInfo of namesToRegister) {
       try {
-        console.log(`Registering name: ${nameInfo.boomName} based on ${nameInfo.originalName} for address ${currentAddress}`);
+        console.log(`Registering name: ${nameInfo.boomName} based on ${nameInfo.originalName} for address ${currentAddress.value}`);
         // In a production app, you would call:
         // await registerBnsName(nameInfo.boomName, currentAddress);
         
@@ -271,7 +276,7 @@ async function registerNames() {
           {
             boomName: nameInfo.boomName,
             originalName: nameInfo.originalName,
-            address: currentAddress,
+            address: currentAddress.value,
             status: 'pending',
             registeredAt: new Date().toISOString()
           }
@@ -306,7 +311,7 @@ function goToStep(step: number) {
     return;
   }
   
-  if (step > 2 && !isWalletConnected) {
+  if (step > 2 && !isWalletConnected.value) {
     message.value = 'Please connect your wallet first';
     return;
   }
@@ -340,8 +345,8 @@ function disconnectWallet() {
   // Double-check that we're properly disconnected
   setTimeout(() => {
     if (isWalletConnected.value) {
-      isWalletConnected.value = false;
-      console.log('Forced wallet disconnection state');
+      // We should not directly modify the ref - this might be a bug in the original code
+      console.log('Wallet still shows as connected after disconnect call');
     }
   }, 100);
 }
