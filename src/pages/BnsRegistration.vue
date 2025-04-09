@@ -11,7 +11,7 @@ const {
   authenticate, 
   currentAddress, 
   disconnect,
-  truncateAddress
+  truncateAddress,
 } = useStacksWallet();
 
 // Step tracking
@@ -262,23 +262,20 @@ async function registerNames() {
       try {
         console.log(`Registering name: ${nameInfo.boomName} based on ${nameInfo.originalName} for address ${currentAddress.value}`);
         // In a production app, you would call:
-        // await registerBnsName(nameInfo.boomName, currentAddress);
+        // await registerBnsName(nameInfo.boomName, currentAddress.value);
         
         // For demo purposes, we'll just log it
         // Simulate successful registration
-        await new Promise(resolve => setTimeout(resolve, 500)); // Faster simulation for multiple names
+        // await new Promise(resolve => setTimeout(resolve, 500)); // Faster simulation for multiple names
         
         // Track the registration in the database
         await databases.createDocument(
           import.meta.env.VITE_APPWRITE_DATABASE_ID,
-          'bns_registrations',
+          import.meta.env.VITE_APPWRITE_COLLECTION_ID,
           ID.unique(),
           {
-            boomName: nameInfo.boomName,
-            originalName: nameInfo.originalName,
+            name: nameInfo.boomName,
             address: currentAddress.value,
-            status: 'pending',
-            registeredAt: new Date().toISOString()
           }
         );
       } catch (err) {
@@ -289,9 +286,9 @@ async function registerNames() {
     
     // Show success message
     if (namesToRegister.length === 1) {
-      alert(`Registration initiated for ${namesToRegister[0].boomName}. Please check your wallet to complete the transaction.`);
+      alert(`Reservation successfully submitted for. ${namesToRegister[0].boomName} will be available when Boom launches.`);
     } else {
-      alert(`Registration initiated for ${namesToRegister.length} names. Please check your wallet to complete the transaction.`);
+      alert(`Reservation successfully submitted for ${namesToRegister.length} names. You're names will be available when Boom launches.`);
     }
     
     // Clear selected names after registration

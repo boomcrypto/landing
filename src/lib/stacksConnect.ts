@@ -1,5 +1,7 @@
 import { AppConfig, UserSession, showConnect } from '@stacks/connect';
 import { ref, onMounted, type Ref } from 'vue';
+import { databases } from './appwrite';
+import { ID } from 'appwrite';
 
 // Create app config with needed scopes
 const appConfig = new AppConfig(['store_write', 'publish_data']);
@@ -255,16 +257,15 @@ export async function registerBnsName(
   name: string, 
   ownerAddress: string
 ) {
-  // Example BNS registration - customize as needed for the specific BNS contract
-  const contractAddress = 'SP000000000000000000002Q6VF78';  // Example, replace with actual BNS contract address
-  const contractName = 'bns';
-  const functionName = 'name-register';
-  
-  // Function arguments would depend on the specific BNS contract
-  const functionArgs = [
-    { type: 'string', value: name },
-    { type: 'principal', value: ownerAddress }
-  ];
-  
-  return callBnsContractFunction(contractAddress, contractName, functionName, functionArgs);
+  const res = await databases.createDocument(
+    import.meta.env.VITE_APPWRITE_DATABASE_ID,
+    import.meta.env.VITE_APPWRITE_COLLECTION_ID,
+    ID.unique(),
+    {
+      name,
+      owner: ownerAddress,
+    }
+  )
+
+  return res;
 }
