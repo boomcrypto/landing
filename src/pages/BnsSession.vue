@@ -21,7 +21,7 @@
           </div>
           <h1 class="text-3xl font-bold mb-4">Verification Failed</h1>
           <p class="text-lg mb-6">{{ errorMessage }}</p>
-          <router-link to="/bns-registration" class="inline-block px-6 py-3 rounded-lg bg-fuchsia-500 hover:bg-fuchsia-600 transition-colors">
+          <router-link to="/reserve" class="inline-block px-6 py-3 rounded-lg bg-fuchsia-500 hover:bg-fuchsia-600 transition-colors">
             Return to Registration
           </router-link>
         </div>
@@ -34,7 +34,7 @@
           </div>
           <h1 class="text-3xl font-bold mb-4">Account Verified!</h1>
           <p class="text-lg mb-6">Your account has been successfully verified. You can now continue with your BNS registration.</p>
-          <router-link to="/bns-registration" class="inline-block px-6 py-3 rounded-lg bg-fuchsia-500 hover:bg-fuchsia-600 transition-colors">
+          <router-link to="/reserve" class="inline-block px-6 py-3 rounded-lg bg-fuchsia-500 hover:bg-fuchsia-600 transition-colors">
             Continue to BNS Registration
           </router-link>
         </div>

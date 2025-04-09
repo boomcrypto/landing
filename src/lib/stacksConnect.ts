@@ -100,7 +100,7 @@ export function useStacksWallet(): UseStacksWallet {
         name: 'Boom BNS Registration',
         icon: `${window.location.origin}/favicon.svg`,
       },
-      redirectTo: '/bns-registration',
+      redirectTo: '/reserve',
       onFinish: () => {
         console.log("Authentication finished, checking if signed in");
         isWalletOpen.value = false;
