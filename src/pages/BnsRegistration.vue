@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue';
-import { ID } from 'appwrite';
+import { useRouter } from 'vue-router'; // Import useRouter
+import { ID, Query } from 'appwrite';
 import { account, databases } from '../lib/appwrite';
 import { useStacksWallet, fetchUserOwnedBtcNamesFromApi } from '../lib/stacksConnect';
 import AppLayout from '../components/AppLayout.vue';
@@ -14,9 +15,16 @@ const {
   truncateAddress,
 } = useStacksWallet();
 
+// Initialize the router
+const router = useRouter(); // Get router instance
+
 // Step tracking
 const currentStep = ref(1);
 const totalSteps = 3;
+
+// Modal state
+const showModal = ref(false);
+const modalMessage = ref('');
 
 // Step 1 - Boom Account Registration
 const email = ref<string>('');
@@ -24,6 +32,8 @@ const sending = ref(false);
 const message = ref<string | null>(null);
 const sent = ref(false);
 const hasAccount = ref(false);
+
+const loading = ref(false)
 
 // Step 2 - Stacks Wallet Connection
 const walletConnecting = ref(false);
@@ -34,6 +44,11 @@ const selectedNames = ref<string[]>([]);
 const fetchingBnsNames = ref(false);
 const searchError = ref<string | null>(null);
 const userOwnedBtcNames = ref<string[]>([]);
+
+// State for checking existing registrations
+const checkingExistingRegistrations = ref(false);
+const existingRegistrations = ref<string[]>([]);
+const hasExistingRegistrations = computed(() => existingRegistrations.value.length > 0);
 
 // Progress tracking
 const progress = computed(() => {
@@ -64,9 +79,13 @@ onMounted(async () => {
       if (currentAddress.value) {
         // Update user record in database if account exists
         if (hasAccount.value) {
-          await updateUserWallet(currentAddress.value);
-          // Move to step 3 since we have both account and wallet
-          currentStep.value = 3;
+          // Check for existing registrations before proceeding
+          const alreadyRegistered = await checkExistingRegistrations(currentAddress.value);
+          if (!alreadyRegistered) {
+            await updateUserWallet(currentAddress.value);
+            // Move to step 3 only if no existing registrations found
+            currentStep.value = 3;
+          }
         }
       }
     }
@@ -126,25 +145,30 @@ function handleConnectWallet() {
         // Create a promise chain to ensure proper flow
         Promise.resolve()
           .then(() => {
-            // Make sure we have a non-null value before passing to updateUserWallet
+            // Make sure we have a non-null value
             if (currentAddress.value) {
-              return updateUserWallet(currentAddress.value);
+              // Check for existing registrations first
+              return checkExistingRegistrations(currentAddress.value);
             }
-            return Promise.resolve();
+            return Promise.resolve(false); // Indicate no check performed
           })
-          .then(() => {
-            console.log("Database updated, moving to step 3");
-            
-            // Force a state update in the next tick to ensure Vue reactivity
-            setTimeout(() => {
-              currentStep.value = 3;
-              console.log("Current step updated to:", currentStep.value);
-            }, 0);
+          .then(async (alreadyRegistered) => {
+            if (!alreadyRegistered && currentAddress.value) {
+              console.log("No existing registrations found, updating database and moving to step 3");
+              await updateUserWallet(currentAddress.value);
+              // Force a state update in the next tick to ensure Vue reactivity
+              setTimeout(() => {
+                currentStep.value = 3;
+                console.log("Current step updated to:", currentStep.value);
+              }, 0);
+            } else if (alreadyRegistered) {
+              console.log("Existing registrations found, staying on step 2.");
+              // Stay on step 2, UI will update based on hasExistingRegistrations
+            }
           })
           .catch(err => {
-            console.error("Error in wallet connect flow:", err);
-            // Even if there was an error, still proceed to step 3
-            currentStep.value = 3;
+            console.error("Error in wallet connect/check flow:", err);
+            // Handle error appropriately, maybe show a message
           });
       } else {
         console.log("No valid address found after authentication");
@@ -175,6 +199,38 @@ async function updateUserWallet(address: string) {
     }
   } catch (error) {
     console.error('Error updating user wallet:', error);
+  }
+}
+
+// Function to check for existing registrations in Appwrite
+async function checkExistingRegistrations(address: string): Promise<boolean> {
+  if (!address) return false;
+
+  checkingExistingRegistrations.value = true;
+  existingRegistrations.value = []; // Reset
+  console.log(`Checking for existing registrations for address: ${address}`);
+
+  try {
+    const response = await databases.listDocuments(
+      import.meta.env.VITE_APPWRITE_DATABASE_ID,
+      import.meta.env.VITE_APPWRITE_COLLECTION_ID,
+      [
+        Query.equal('address', address)
+      ]
+    );
+
+    if (response.documents.length > 0) {
+      existingRegistrations.value = response.documents.map(doc => doc.name);
+      console.log('Found existing registrations:', existingRegistrations.value);
+      return true; // Indicate registrations found
+    }
+    console.log('No existing registrations found.');
+    return false; // Indicate no registrations found
+  } catch (error) {
+    console.error('Error checking existing registrations:', error);
+    return false; // Assume none on error to avoid blocking user unnecessarily
+  } finally {
+    checkingExistingRegistrations.value = false;
   }
 }
 
@@ -278,31 +334,38 @@ async function registerNames() {
             address: currentAddress.value,
           }
         );
+
+        loading.value = true
+        await new Promise(resolve => setTimeout(resolve, 500)); // Faster simulation for multiple names
+        loading.value = false
+
       } catch (err) {
         console.error(`Failed to register name: ${nameInfo.boomName}`, err);
         // Continue with other names
       }
     }
     
-    // Show success message
+    // Show success message via modal
     if (namesToRegister.length === 1) {
-      alert(`Reservation successfully submitted. ${namesToRegister[0].boomName} will be available when Boom launches.`);
+      modalMessage.value = `Reservation successfully submitted. ${namesToRegister[0].boomName} will be available when Boom launches.`;
     } else {
-      alert(`Reservation successfully submitted for ${namesToRegister.length} names. Your names will be available when Boom launches.`);
+      modalMessage.value = `Reservation successfully submitted for ${namesToRegister.length} names. Your names will be available when Boom launches.`;
     }
+    showModal.value = true;
     
     // Clear selected names after registration
     selectedNames.value = [];
   } catch (error) {
     console.error('Error registering names:', error);
-    alert('There was an error initiating the registration. Please try again.');
+    modalMessage.value = 'There was an error initiating the registration. Please try again.';
+    showModal.value = true;
   }
 }
 
 // Helper functions for navigation
 function goToStep(step: number) {
   if (step < 1 || step > totalSteps) return;
-  
+
   if (step > 1 && !hasAccount.value) {
     message.value = 'Please create an account first';
     return;
@@ -312,8 +375,13 @@ function goToStep(step: number) {
     message.value = 'Please connect your wallet first';
     return;
   }
-  
   currentStep.value = step;
+}
+
+function closeModal() {
+  showModal.value = false;
+  modalMessage.value = '';
+  router.push('/'); // Add redirection here
 }
 
 function nextStep() {
@@ -365,6 +433,28 @@ function copyAddressToClipboard(address: string | null) {
 
 <template>
   <AppLayout>
+    <!-- Success Modal -->
+    <div v-if="showModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+      <div class="relative mx-auto p-5 border w-96 shadow-lg rounded-md bg-gray-800 border-gray-700">
+        <div class="mt-3 text-center">
+          <h3 class="text-lg leading-6 font-medium text-white">Success!</h3>
+          <div class="mt-2 px-7 py-3">
+            <p class="text-sm text-gray-300">
+              {{ modalMessage }}
+            </p>
+          </div>
+          <div class="items-center px-4 py-3">
+            <button
+              @click="closeModal"
+              class="px-4 py-2 bg-fuchsia-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-fuchsia-600 focus:outline-none focus:ring-2 focus:ring-fuchsia-300"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
     <div class="min-h-screen">
       <!-- Header Section -->
       <section class="px-4 py-16">
@@ -402,11 +492,11 @@ function copyAddressToClipboard(address: string | null) {
             </button>
             <div class="border-t border-gray-600 w-10 self-center"></div>
             <button @click="goToStep(3)" :class="[
-                'w-8 h-8 rounded-full flex items-center justify-center', 
+                'w-8 h-8 rounded-full flex items-center justify-center',
                 currentStep >= 3 ? 'bg-fuchsia-500' : 'bg-gray-700',
-                currentStep === 3 ? 'ring-2 ring-fuchsia-300' : '',
-                !isWalletConnected ? 'opacity-50 cursor-not-allowed' : ''
-              ]" :disabled="!isWalletConnected">
+                currentStep === 3 && !hasExistingRegistrations ? 'ring-2 ring-fuchsia-300' : '', // Highlight only if reachable
+                !isWalletConnected || hasExistingRegistrations ? 'opacity-50 cursor-not-allowed' : '' // Disable if no wallet or existing names
+              ]" :disabled="!isWalletConnected || hasExistingRegistrations">
               3
             </button>
           </div>
@@ -415,7 +505,18 @@ function copyAddressToClipboard(address: string | null) {
 
       <!-- Main Content Section -->
       <section class="px-4 pb-16">
-        <div class="max-w-4xl mx-auto">
+        <div class="max-w-4xl mx-auto relative">
+
+          <!-- Loading Indicator -->
+          <div v-if="loading" class="absolute inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-10 rounded-lg">
+            <div class="text-center">
+              <svg class="animate-spin h-8 w-8 text-fuchsia-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <p class="text-lg font-semibold">Processing...</p>
+            </div>
+          </div>
 
           <!-- Step 1: Register for Boom -->
           <div v-if="currentStep === 1" class="p-6 bg-gray-800 rounded-lg">
@@ -438,6 +539,9 @@ function copyAddressToClipboard(address: string | null) {
                 <p class="text-fuchsia-300 font-semibold mb-2">✓ Email sent!</p>
                 <p>{{ message }}</p>
               </div>
+          <!-- Modal removed from here and placed at the top level of the template -->
+              <!-- End Modal -->
+          
             </div>
 
             <div v-else>
@@ -490,14 +594,34 @@ function copyAddressToClipboard(address: string | null) {
                 </div>
               </div>
 
-              <div class="mt-6 flex space-x-4">
-                <button @click="prevStep" class="px-6 py-3 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors">
-                  Previous Step
-                </button>
-                <button @click="nextStep"
-                  class="px-6 py-3 rounded-lg bg-fuchsia-500 hover:bg-fuchsia-600 transition-colors">
-                  Continue to Next Step
-                </button>
+              <!-- Loading indicator for registration check -->
+              <div v-if="checkingExistingRegistrations" class="mt-6 p-4 bg-gray-700 rounded-lg flex items-center justify-center">
+                <svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Checking for existing registrations...</span>
+              </div>
+
+              <!-- Display existing registrations if found -->
+              <div v-else-if="hasExistingRegistrations" class="mt-6 p-4 bg-yellow-900/50 border border-yellow-700 rounded-lg">
+                <h3 class="text-lg font-semibold text-yellow-300 mb-2">Existing Registrations Found</h3>
+                <p class="mb-3">The following .boom.btc names are already registered for this wallet address:</p>
+                <ul class="list-disc list-inside mb-4 space-y-1">
+                  <li v-for="name in existingRegistrations" :key="name" class="font-mono">{{ name }}</li>
+                </ul>
+                <p>You cannot reserve additional names with this wallet at this time.</p>
+              </div>
+
+              <!-- Navigation buttons (show Continue only if no existing registrations) -->
+              <div v-else class="mt-6 flex space-x-4">
+                 <button @click="prevStep" class="px-6 py-3 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors">
+                   Previous Step
+                 </button>
+                 <button @click="nextStep"
+                   class="px-6 py-3 rounded-lg bg-fuchsia-500 hover:bg-fuchsia-600 transition-colors">
+                   Continue to Name Selection
+                 </button>
               </div>
             </div>
 
@@ -546,7 +670,7 @@ function copyAddressToClipboard(address: string | null) {
           </div>
 
           <!-- Step 3: BNS Name Selection -->
-          <div v-if="currentStep === 3" class="p-6 bg-gray-800 rounded-lg">
+          <div v-if="currentStep === 3 && !hasExistingRegistrations" class="p-6 bg-gray-800 rounded-lg">
             <h2 class="text-2xl font-bold mb-4">Step 3: Select BNS Names to Register</h2>
             <p class="mb-6">Choose the Bitcoin names you'd like to register. You can check availability and select
               multiple names.</p>
