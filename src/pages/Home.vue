@@ -77,7 +77,7 @@ onMounted(async () => {
     >
       <div class="md:w-1/2 mb-8 md:mb-0">
         <h5 class="text-fuchsia-100 font-bold mb-4">
-          EXPERIENCE GLOBAL FINANCIAL FREEDOM
+          Pay. Play. Shop. Share.
         </h5>
         <h1 class="text-5xl font-bold mb-6">Be Sovereign.</h1>
         <p class="text-xl mb-8">
