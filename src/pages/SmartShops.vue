@@ -120,7 +120,7 @@ import AppLayout from '../components/AppLayout.vue';
           <div class="md:w-1/2">
             <div class="bg-zinc-800 p-8 rounded-lg">
               <img
-                src="https://images.unsplash.com/photo-1642010654727-a693951def5c?q=80&w=2964&auto=format&fit=crop&ixlib=rb-4.0.3"
+                src="/shubham-dhage-IlUq1ruyv0Q-unsplash.jpg"
                 alt="Non-Custodial & Decentralized" class="rounded-lg w-full shadow-lg" />
             </div>
           </div>
@@ -141,7 +141,7 @@ import AppLayout from '../components/AppLayout.vue';
           <div class="md:w-1/2">
             <div class="bg-zinc-800 p-8 rounded-lg">
               <img
-                src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5ce?q=80&w=2833&auto=format&fit=crop&ixlib=rb-4.0.3"
+                src="/public/erin-doering-EfYipl85wa4-unsplash.jpg"
                 alt="Cross-Border Compatibility" class="rounded-lg w-full shadow-lg" />
             </div>
           </div>
@@ -247,12 +247,15 @@ import AppLayout from '../components/AppLayout.vue';
     <section class="py-16 px-4">
       <div class="max-w-7xl mx-auto">
         <h2 class="text-4xl font-bold text-center mb-6">Subscription Plans</h2>
-        <p class="text-xl text-center mb-16 max-w-3xl mx-auto">Choose the plan that's right for your business. Our
-          transparent pricing means no hidden fees or surprises.</p>
+        <!-- <p class="text-xl text-center mb-16 max-w-3xl mx-auto">Choose the plan that's right for your business. Our
+          transparent pricing means no hidden fees or surprises.</p> -->
 
-        <div class="grid lg:grid-cols-2 md:grid-cols-2 gap-4">
+        <div class="grid md:grid-cols-2 gap-8">
+        Coming Soon.
+        </div>
+        <!-- <div class="grid lg:grid-cols-2 md:grid-cols-2 gap-4"> -->
           <!-- Basic Plan -->
-          <div class="bg-zinc-800 rounded-xl overflow-hidden transition-transform duration-300 hover:scale-105">
+          <!-- <div class="bg-zinc-800 rounded-xl overflow-hidden transition-transform duration-300 hover:scale-105">
             <div class="p-6 border-b border-zinc-700">
               <h3 class="text-2xl font-bold mb-2">Basic</h3>
               <div class="flex items-end gap-1 mb-4">
@@ -310,10 +313,10 @@ import AppLayout from '../components/AppLayout.vue';
                 Join Waitlist
               </a>
             </div>
-          </div>
+          </div> -->
 
           <!-- Pro Plan (Highlighted) -->
-          <div
+          <!-- <div
             class="bg-zinc-800 rounded-xl overflow-hidden relative transition-transform duration-300 hover:scale-105">
             <div class="absolute top-0 right-0 bg-fuchsia-500 text-white px-4 py-1 text-sm font-semibold">
               POPULAR
@@ -374,13 +377,13 @@ import AppLayout from '../components/AppLayout.vue';
                 Join Waitlist
               </a>
             </div>
-          </div>
-        </div>
+          </div> -->
+        <!-- </div> -->
       </div>
     </section>
 
     <!-- CTA Section -->
-    <section class="py-16 px-4">
+    <!-- <section class="py-16 px-4">
       <div class="max-w-4xl mx-auto text-center">
         <h2 class="text-4xl font-bold mb-6">Ready to Start Selling?</h2>
         <p class="text-xl mb-8">Join the future of commerce with Boom Smart Shops and start accepting Bitcoin and Stacks
@@ -395,7 +398,7 @@ import AppLayout from '../components/AppLayout.vue';
           </a>
         </div>
       </div>
-    </section>
+    </section> -->
 
     <!-- FAQ Section -->
     <section class="py-16 px-4 bg-zinc-800">
@@ -459,5 +462,7 @@ import AppLayout from '../components/AppLayout.vue';
         </div>
       </div>
     </section>
+    Photo by <a href="https://unsplash.com/@theshubhamdhage?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Shubham Dhage</a> on <a href="https://unsplash.com/photos/a-black-and-white-photo-of-cubes-on-a-black-background-IlUq1ruyv0Q?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a>
+    Photo by <a href="https://unsplash.com/@edoering?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Erin Doering</a> on <a href="https://unsplash.com/photos/a-man-sitting-at-a-table-with-many-different-items-on-it-EfYipl85wa4?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a>  
   </AppLayout>
 </template>
