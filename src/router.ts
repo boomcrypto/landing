@@ -24,8 +24,6 @@ const routes = [
   { path: '/testimonials', component: Testimonials },
   { path: '/press-release/:slug', component: Release },
   { path: '/merchants', component: SmartShops },
-  { path: '/reserve', component: BnsRegistration },
-  { path: '/bns-verify', component: BnsSession },
 ];
 
 const router = createRouter({
