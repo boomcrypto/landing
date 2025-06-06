@@ -34,7 +34,7 @@ Through the N21 program, Boom will gain:
 For more information about Boom, visit https://boom.money/ or follow on X at https://x.com/boom_wallet.
 
 
-'###
+###
 
 **About Boom Platforms, Inc.**
 Boom is a Bitcoin-native social payment app leveraging Stacks Layer 2 and sBTC to unlock fast, low-cost, and scalable Bitcoin transactions without custodians or third parties. Boom's "Pay.Play.Shop.Share" approach combines Bitcoin payments, tipping, social sharing, and eCommerce in one seamless experience, targeting a circular Bitcoin economy through a mobile-first super platform that other developers can build upon.
