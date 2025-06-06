@@ -1,18 +1,26 @@
+/**
+ * @fileoverview Stacks wallet connection and BNS registration utilities
+ * Currently used exclusively for BNS pre-launch registration functionality
+ */
+
 import { AppConfig, UserSession, showConnect } from '@stacks/connect';
 import { ref, onMounted, type Ref } from 'vue';
 import { databases } from './appwrite';
 import { ID } from 'appwrite';
 
-// Create app config with needed scopes
+/** Create app config with needed scopes for BNS operations */
 const appConfig = new AppConfig(['store_write', 'publish_data']);
 
-// Create a user session
+/** Create a user session for Stacks wallet interaction */
 const userSession = new UserSession({ appConfig });
 
-// Define our network type
+/** Network type definition for Stacks blockchain */
 type Network = 'mainnet' | 'testnet';
 
-// Define the return type for our composable
+/**
+ * Interface defining the return type for the useStacksWallet composable
+ * Used for BNS pre-launch registration wallet connectivity
+ */
 interface UseStacksWallet {
   isWalletOpen: Ref<boolean>;
   isWalletConnected: Ref<boolean>;
@@ -28,20 +36,30 @@ interface UseStacksWallet {
   didCopyAddress: Ref<boolean>;
 }
 
-// Create a function to get the persisted network
+/**
+ * Gets the persisted network selection from localStorage
+ * @returns The saved network or 'mainnet' as default
+ */
 function getPersistedNetwork(): Network {
   if (typeof window === 'undefined') return 'mainnet';
   const savedNetwork = localStorage.getItem('stacks-network');
   return (savedNetwork as Network) || 'mainnet';
 }
 
-// Create a function to persist the network
+/**
+ * Persists the network selection to localStorage
+ * @param network - The network to persist
+ */
 function persistNetwork(network: Network): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem('stacks-network', network);
 }
 
-// Create our Vue composable
+/**
+ * Vue composable for Stacks wallet connectivity and BNS operations
+ * Currently used exclusively for BNS pre-launch registration
+ * @returns Object containing wallet state and methods
+ */
 export function useStacksWallet(): UseStacksWallet {
   // State
   const isWalletOpen = ref(false);
@@ -65,7 +83,10 @@ export function useStacksWallet(): UseStacksWallet {
     }
   });
   
-  // Helper to update address values
+  /**
+   * Updates address values based on current wallet connection state
+   * Clears addresses if disconnected, loads from user data if connected
+   */
   function updateAddresses() {
     if (!isWalletConnected.value) {
       testnetAddress.value = null;
@@ -80,14 +101,20 @@ export function useStacksWallet(): UseStacksWallet {
     currentAddress.value = network.value === 'mainnet' ? mainnetAddress.value : testnetAddress.value;
   }
   
-  // Function to set the network
+  /**
+   * Sets the network and persists the selection
+   * @param newNetwork - The network to switch to
+   */
   function setNetwork(newNetwork: Network) {
     network.value = newNetwork;
     persistNetwork(newNetwork);
     updateAddresses();
   }
   
-  // Function to authenticate with callback
+  /**
+   * Initiates Stacks wallet authentication for BNS registration
+   * @param onSuccess - Optional callback to execute after successful authentication
+   */
   function authenticate(onSuccess?: () => void) {
     if (!showConnect) {
       console.error("@stacks/connect isn't loaded properly");
@@ -129,7 +156,9 @@ export function useStacksWallet(): UseStacksWallet {
     });
   }
   
-  // Function to disconnect
+  /**
+   * Disconnects the wallet and clears user session
+   */
   function disconnect() {
     if (!userSession) return;
     userSession.signUserOut(window.location.toString());
@@ -137,14 +166,21 @@ export function useStacksWallet(): UseStacksWallet {
     updateAddresses();
   }
   
-  // Helper to truncate addresses for display
+  /**
+   * Truncates Stacks addresses for display purposes
+   * @param address - The address to truncate
+   * @returns Truncated address string or empty string if null
+   */
   function truncateAddress(address: string | null): string {
     if (!address) return '';
     if (address.length <= 12) return address;
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   }
   
-  // Helper to copy address to clipboard
+  /**
+   * Copies the current address to clipboard with feedback
+   * Shows feedback for 1 second after copying
+   */
   function copyAddressToClipboard() {
     if (currentAddress.value) {
       navigator.clipboard.writeText(currentAddress.value);
@@ -172,10 +208,13 @@ export function useStacksWallet(): UseStacksWallet {
   };
 }
 
-// Export the user session for direct use if needed
+/** Export the user session for direct use if needed */
 export { userSession };
 
-// Interface for BNSv2 API response
+/**
+ * Interface for BNSv2 API response structure
+ * Used when fetching owned BTC names for BNS pre-launch registration
+ */
 interface BnsV2ApiResponse {
   total: number;
   current_burn_block: number;
@@ -193,7 +232,11 @@ interface BnsV2ApiResponse {
   }[];
 }
 
-// Function to fetch user owned BTC names from BNSv2 API directly
+/**
+ * Fetches user-owned BTC names from BNSv2 API for pre-launch registration eligibility
+ * @param stacksAddress - Stacks address (string, ref, or object with toString method)
+ * @returns Promise resolving to array of owned .btc names
+ */
 export async function fetchUserOwnedBtcNamesFromApi(stacksAddress: string | Ref<string | null> | { toString(): string }): Promise<string[]> {
   try {
     // Handle if the address is a ref or a string
@@ -233,7 +276,15 @@ export async function fetchUserOwnedBtcNamesFromApi(stacksAddress: string | Ref<
   }
 }
 
-// Contract call functions specifically for BNS
+/**
+ * Placeholder function for BNS contract interactions
+ * Currently used for BNS pre-launch registration (placeholder implementation)
+ * @param contractAddress - The contract address
+ * @param contractName - The contract name
+ * @param functionName - The function to call
+ * @param functionArgs - Arguments to pass to the function
+ * @returns Placeholder transaction object
+ */
 export async function callBnsContractFunction(
   contractAddress: string,
   contractName: string,
@@ -252,7 +303,13 @@ export async function callBnsContractFunction(
   };
 }
 
-// Function specifically for BNS name registration
+/**
+ * Registers a BNS name for pre-launch registration
+ * Stores registration data in Appwrite database
+ * @param name - The BNS name to register
+ * @param ownerAddress - The Stacks address of the owner
+ * @returns Appwrite document creation response
+ */
 export async function registerBnsName(
   name: string, 
   ownerAddress: string
