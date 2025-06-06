@@ -143,7 +143,7 @@ describe('useStacksWallet', () => {
 
   it('should copy address to clipboard', () => {
     const wallet = useStacksWallet();
-    
+
     // Mock clipboard and currentAddress
     Object.assign(navigator, {
       clipboard: {
@@ -151,7 +151,10 @@ describe('useStacksWallet', () => {
       }
     });
     wallet.currentAddress.value = 'test-address';
-    
+
+    // Use fake timers for timeout behavior
+    vi.useFakeTimers();
+
     // Copy address
     wallet.copyAddressToClipboard();
     
@@ -162,6 +165,9 @@ describe('useStacksWallet', () => {
     // Wait for timeout
     vi.advanceTimersByTime(1100);
     expect(wallet.didCopyAddress.value).toBe(false);
+
+    // Restore real timers
+    vi.useRealTimers();
   });
 });
 
