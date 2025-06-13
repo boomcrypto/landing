@@ -10,8 +10,8 @@ import Press from './pages/Press.vue';
 import Testimonials from './pages/Testimonials.vue';
 import Release from './pages/Release.vue';
 import SmartShops from './pages/SmartShops.vue';
-import BnsRegistration from './pages/BnsRegistration.vue';
-import BnsSession from './pages/BnsSession.vue';
+// import BnsRegistration from './pages/BnsRegistration.vue';
+// import BnsSession from './pages/BnsSession.vue';
 
 const routes = [
   { path: '/', component: Home },
