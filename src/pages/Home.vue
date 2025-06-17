@@ -4,7 +4,6 @@ import { ID } from 'appwrite';
 import { account, databases } from '../lib/appwrite';
 import AppLayout from '../components/AppLayout.vue';
 
-import heroImg from '../assets/hero-leftv2.png';
 import testimonial1 from '../assets/testimonial1.png';
 import testimonial2 from '../assets/testimonial2.jpg';
 import testimonial3 from '../assets/testimonial3.jpg';
@@ -137,7 +136,7 @@ onMounted(async () => {
       </div>
       <div class="md:w-1/2">
         <img
-          :src="heroImg"
+          src="https://fra.cloud.appwrite.io/v1/storage/buckets/listing-images/files/hero-left/view?project=6758be590020a7c4f71b"
           alt="App Screenshot"
           class="max-w-sm mx-auto"
         />
