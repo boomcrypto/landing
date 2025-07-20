@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '../components/AppLayout.vue';
+
 </script>
 
 <template>
@@ -16,15 +17,16 @@ import AppLayout from '../components/AppLayout.vue';
           your business with the power of Bitcoin and Stacks.
         </p>
         <div class="space-y-4">
-          <a href="#features" class="inline-block px-6 py-3 rounded-lg bg-fuchsia-500 hover:bg-fuchsia-600 transition">
-            Explore Features
+          <a href="https://shop.boom.money/"
+            class="inline-block px-6 py-3 rounded-lg bg-fuchsia-500 hover:bg-fuchsia-600 transition">
+            Get Started!
           </a>
         </div>
       </div>
       <div class="md:w-1/2 flex justify-center">
         <img
-          src="https://images.unsplash.com/photo-1556742393-d75f468bfcb0?q=80&w=2787&auto=format&fit=crop&ixlib=rb-4.0.3"
-          alt="Merchant using Boom Smart Shops" class="max-w-sm rounded-lg shadow-2xl" />
+          src="/images/store-dashboard.png?q=80&w=2787&auto=format&fit=crop&ixlib=rb-4.0.3"
+          alt="Merchant Dashboard" class="max-w-sm rounded-lg shadow-2xl" />
       </div>
     </section>
 
@@ -98,8 +100,11 @@ import AppLayout from '../components/AppLayout.vue';
           </div>
           <div class="md:w-1/2">
             <div class="bg-zinc-800 p-8 rounded-lg">
+              <!-- <img
+                src="https://images.unsplash.com/photo-1556742393-d75f468bfcb0?q=80&w=2787&auto=format&fit=crop&ixlib=rb-4.0.3"
+                alt="StacksPay Integration" class="max-w-sm rounded-lg shadow-lg" /> -->
               <img
-                src="https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3"
+                src="https://images.unsplash.com/photo-1556742393-d75f468bfcb0?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3"
                 alt="StackPay Integration" class="rounded-lg w-full shadow-lg" />
             </div>
           </div>
@@ -119,9 +124,8 @@ import AppLayout from '../components/AppLayout.vue';
           </div>
           <div class="md:w-1/2">
             <div class="bg-zinc-800 p-8 rounded-lg">
-              <img
-                src="/shubham-dhage-IlUq1ruyv0Q-unsplash.jpg"
-                alt="Non-Custodial & Decentralized" class="rounded-lg w-full shadow-lg" />
+              <img src="/shubham-dhage-IlUq1ruyv0Q-unsplash.jpg" alt="Non-Custodial & Decentralized"
+                class="rounded-lg w-full shadow-lg" />
             </div>
           </div>
         </div>
@@ -140,9 +144,8 @@ import AppLayout from '../components/AppLayout.vue';
           </div>
           <div class="md:w-1/2">
             <div class="bg-zinc-800 p-8 rounded-lg">
-              <img
-                src="/public/erin-doering-EfYipl85wa4-unsplash.jpg"
-                alt="Cross-Border Compatibility" class="rounded-lg w-full shadow-lg" />
+              <img src="/public/erin-doering-EfYipl85wa4-unsplash.jpg" alt="Cross-Border Compatibility"
+                class="rounded-lg w-full shadow-lg" />
             </div>
           </div>
         </div>
@@ -251,11 +254,11 @@ import AppLayout from '../components/AppLayout.vue';
           transparent pricing means no hidden fees or surprises.</p> -->
 
         <div class="grid md:grid-cols-2 gap-8">
-        Coming Soon.
+          Coming Soon.
         </div>
         <!-- <div class="grid lg:grid-cols-2 md:grid-cols-2 gap-4"> -->
-          <!-- Basic Plan -->
-          <!-- <div class="bg-zinc-800 rounded-xl overflow-hidden transition-transform duration-300 hover:scale-105">
+        <!-- Basic Plan -->
+        <!-- <div class="bg-zinc-800 rounded-xl overflow-hidden transition-transform duration-300 hover:scale-105">
             <div class="p-6 border-b border-zinc-700">
               <h3 class="text-2xl font-bold mb-2">Basic</h3>
               <div class="flex items-end gap-1 mb-4">
@@ -315,8 +318,8 @@ import AppLayout from '../components/AppLayout.vue';
             </div>
           </div> -->
 
-          <!-- Pro Plan (Highlighted) -->
-          <!-- <div
+        <!-- Pro Plan (Highlighted) -->
+        <!-- <div
             class="bg-zinc-800 rounded-xl overflow-hidden relative transition-transform duration-300 hover:scale-105">
             <div class="absolute top-0 right-0 bg-fuchsia-500 text-white px-4 py-1 text-sm font-semibold">
               POPULAR
@@ -409,15 +412,17 @@ import AppLayout from '../components/AppLayout.vue';
           <!-- FAQ Item 1 -->
           <div class="p-6 bg-zinc-700 rounded-lg">
             <h3 class="text-xl font-bold mb-3">How do I set up a Boom Smart Shop?</h3>
-            <p>Setting up your shop is simple. Just create an account with Boom Wallet, navigate to the Smart Shops
-              section, and follow the step-by-step guide to customize your store, add products, and start selling.</p>
+            <p>Setting up your shop is simple. Just create an account with Boom Wallet, navigate to <a
+                href="https://smartshops.boom.money/">https://smartshops.boom.money/</a>, and follow the step-by-step
+              guide to customize your store, add products, and start selling.</p>
           </div>
 
           <!-- FAQ Item 2 -->
           <div class="p-6 bg-zinc-700 rounded-lg">
             <h3 class="text-xl font-bold mb-3">What types of products can I sell?</h3>
             <p>Boom Smart Shops supports both digital and physical products. Whether you're selling e-books, art,
-              merchandise, or services, our platform can handle it all with dedicated features for each product type.
+              merchandise, or services, operating a food truck, or selling merch at your live gig, our platform can
+              handle it all with dedicated features for each product type.
             </p>
           </div>
 
@@ -431,7 +436,8 @@ import AppLayout from '../components/AppLayout.vue';
           <!-- FAQ Item 4 -->
           <div class="p-6 bg-zinc-700 rounded-lg">
             <h3 class="text-xl font-bold mb-3">What are the costs and subscription options?</h3>
-            <p>We offer two simple pricing tiers based on a percentage fee per transaction:</p>
+            <p>TBD</p>
+            <!-- <p>We offer two simple pricing tiers based on a percentage fee per transaction:</p>
             <ul class="list-disc pl-5 mt-2 space-y-1">
               <li><strong>Basic:</strong> Monthly or Annual subscriptions, 2% per transaction, suitable for small stores
                 with up to 10 products</li>
@@ -440,7 +446,7 @@ import AppLayout from '../components/AppLayout.vue';
                 enhanced features</li>
             </ul>
             <p class="mt-2">Unlike traditional platforms, there are no monthly fixed costs - you only pay when you make
-              a sale. There are also no setup fees, listing fees, or hidden charges.</p>
+              a sale. There are also no setup fees, listing fees, or hidden charges.</p> -->
           </div>
 
           <!-- FAQ Item 5 -->
@@ -453,16 +459,22 @@ import AppLayout from '../components/AppLayout.vue';
           </div>
 
           <!-- FAQ Item 6 -->
-          <div class="p-6 bg-zinc-700 rounded-lg">
+          <!-- <div class="p-6 bg-zinc-700 rounded-lg">
             <h3 class="text-xl font-bold mb-3">Can I upgrade or downgrade my plan later?</h3>
             <p>Absolutely! You can switch between plans at any time as your business needs change. When upgrading,
               you'll immediately gain access to all the features of your new plan. There are no penalties or lock-in
               periods - we believe in growing with you at your own pace.</p>
-          </div>
+          </div> -->
         </div>
       </div>
     </section>
-    Photo by <a href="https://unsplash.com/@theshubhamdhage?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Shubham Dhage</a> on <a href="https://unsplash.com/photos/a-black-and-white-photo-of-cubes-on-a-black-background-IlUq1ruyv0Q?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a>
-    Photo by <a href="https://unsplash.com/@edoering?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Erin Doering</a> on <a href="https://unsplash.com/photos/a-man-sitting-at-a-table-with-many-different-items-on-it-EfYipl85wa4?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a>  
+    Photo by <a
+      href="https://unsplash.com/@theshubhamdhage?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Shubham
+      Dhage</a> on <a
+      href="https://unsplash.com/photos/a-black-and-white-photo-of-cubes-on-a-black-background-IlUq1ruyv0Q?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a>
+    Photo by <a
+      href="https://unsplash.com/@edoering?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Erin
+      Doering</a> on <a
+      href="https://unsplash.com/photos/a-man-sitting-at-a-table-with-many-different-items-on-it-EfYipl85wa4?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a>
   </AppLayout>
 </template>
